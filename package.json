@@ -1,12 +1,12 @@
 {
     "name": "jovencio-datatable-vue",
-    "version": "1.0.8",
+    "version": "1.0.10",
     "main": "index.js",
     "scripts": {
       "build": "vite build",
       "dev": "vite"
     },
-    "keywords": ["vue", "datatable", "vue3"],
+    "keywords": ["datatable", "vue-datatable", "datatable-vue", "vue3"],
     "devDependencies": {
         "vite": "^3.0.0",
         "vue": "^3.0.0",
