@@ -6,7 +6,7 @@
       "build": "vite build",
       "dev": "vite"
     },
-    "keywords": ["vue", "component", "vue3"],
+    "keywords": ["vue", "datatable", "vue3"],
     "devDependencies": {
         "vite": "^3.0.0",
         "vue": "^3.0.0",
