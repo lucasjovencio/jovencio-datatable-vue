@@ -132,7 +132,7 @@ export default {
 				return {
 					'data': row.id,
 					// @ts-ignore
-					'title': i18n.global.t(row.name),
+					'title': (this.$t) ? this.$t(row.name) : row.name,
 					'className': row.class,
 					'render': render,
 					'type': row.type ?? 'string',
@@ -209,8 +209,6 @@ export default {
 			// @ts-ignore
 			this.dataReady = true;
 		}, 200);
-
-		console.log(i18n)
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -250,8 +248,8 @@ export default {
 								const column = columns[key]
 								data += `<div class="mb-2 flex flex-row items-center"> <span class="mr-1">${column.title}:</span> ${column.data} </div>`;
 							}
-							const expressaoRegular = new RegExp("\\w-full\\b", "gi");
-							data = data.replace(expressaoRegular, 'w-responsive');
+							const expressaoRegular = new RegExp("\\action-fulltable\\b", "gi");
+							data = data.replace(expressaoRegular, 'action-responsive-table');
 
 							setTimeout(async () => {
 								try {
@@ -293,10 +291,8 @@ export default {
 						//
 					}
 
-					try {// @ts-ignore
-						useTippy('.tippys-load', {
-							content: reference => reference.getAttribute('data-tippy')
-						});
+					try {
+						self.setTips();
 					} catch (e) {
 						// continue
 					}
@@ -319,7 +315,7 @@ export default {
 						url: this.url, // @ts-ignore
 						dataSrc: this.options.dataSrc,
 					}
-				};;
+				};
 			}
 
 			// @ts-ignore
@@ -685,10 +681,12 @@ export default {
 		},
 		async unListen() {
 			const self = this;// @ts-ignore
+
 			for (let key in self.clousures) {// @ts-ignore
 				const clousure = self.clousures[key];// @ts-ignore
+
 				const locks = document.querySelectorAll(clousure.selector);
-				locks.forEach((elemento) => {
+				locks.forEach((elemento:any) => {
 					const clone = elemento.cloneNode(true);
 					elemento.parentNode.replaceChild(clone, elemento);
 				});
@@ -724,6 +722,18 @@ export default {
 			// @ts-ignore
 			i18n.global.locale = locale
 			this.updateDataTable(Math.random(), page);
+		},
+		setTips() {
+			try {// @ts-ignore
+				// const elements = document.querySelectorAll('.tippys-load');
+				setTimeout(() => {
+					useTippy('.tippys-load', {
+						content: reference => reference.getAttribute('data-tippy')
+					});
+				}, 100);
+			} catch (e) {
+				// continue
+			}
 		}
 	},
 };
