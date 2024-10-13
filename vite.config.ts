@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import { chunkSplitPlugin } from 'vite-plugin-chunk-split';
 import { resolve } from 'path';
+import moment from 'moment';
+import DateTime from 'datatables.net-datetime';
 
 export default defineConfig({
   plugins: [
@@ -13,7 +14,6 @@ export default defineConfig({
         },
       }
     }),
-    // chunkSplitPlugin(),
   ],
   build: {
     lib: {

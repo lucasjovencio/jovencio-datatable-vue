@@ -1,9 +1,9 @@
+import DateTime from 'datatables.net-datetime';
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
 import { plugin as VueTippy } from 'vue-tippy';
-import DateTime from 'datatables.net-datetime';
-
+import moment from 'moment';
 const app = createApp(App);
 app.use(VueTippy, {
     directive: 'tippy', // => v-tippy
