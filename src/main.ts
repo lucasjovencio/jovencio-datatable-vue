@@ -1,6 +1,8 @@
-import { createApp } from 'vue';
-import App from './App.vue'; // Você pode criar um App.vue ou renderizar direto o componente aqui
+import { createApp } from 'vue'
+import './style.css'
+import App from './App.vue'
 import { plugin as VueTippy } from 'vue-tippy';
+import DateTime from 'datatables.net-datetime';
 
 const app = createApp(App);
 app.use(VueTippy, {
