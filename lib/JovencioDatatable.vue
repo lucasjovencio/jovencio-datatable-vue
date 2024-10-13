@@ -15,8 +15,10 @@
 </template>
 
 <script lang="ts">
-import DateTime from 'datatables.net-datetime';
+import { DateTime } from 'datatables.net-datetime';
+import 'moment';
 import DataTable from "datatables.net-vue3"
+import 'datatables.net';
 import DataTablesCore from "datatables.net"// @ts-ignore
 import type JovencioDataTableColumn from "../src/types/JovencioDataTableColumn"
 import 'datatables.net-searchbuilder-dt';
@@ -27,15 +29,17 @@ import { createI18n } from 'vue-i18n';
 import br from "../src/locales/pt-br.json";
 import en from "../src/locales/en.json";
 import JovencioActionClousure from '../src/types/JovencioActionClousure';
-import JovencioDataTableOption from '../src/types/JovencioDataTableOption';
+import { JovencioDataTableOption } from './main';
+import { JovencioDatatableCommon } from './main';
+import JovencioProviderClousure from '../src/types/JovencioProviderClousure';
 
 const i18n = createI18n({
 	locale: "en",
 	fallbackLocale: "en",
 	messages: { br: br, en: en, 'pt-BR': br },
 });
-
 DataTable.use(DataTablesCore)
+
 export default {
 	name: 'JovencioDatatable',
 	components: {
@@ -116,8 +120,9 @@ export default {
 			// @ts-ignore
 			self.clousures = [] as JovencioActionClousure[];// @ts-ignore
 
-			const addClousure = function(data:JovencioActionClousure[]) {
+			const addClousure = function(provider:JovencioProviderClousure) {
 				// @ts-ignore
+				const data = JovencioDatatableCommon.providerClousureDT(provider) as JovencioActionClousure[]
 				self.clousures.push(...data)
 			}
 			// @ts-ignore
@@ -136,11 +141,10 @@ export default {
 				} catch (e) {
 					// continue
 				}
-
 				return {
 					'data': row.id,
 					// @ts-ignore
-					'title': (this.$t) ? this.$t(row.name) : row.name,
+					'title': row.name,
 					'className': row.class,
 					'render': render,
 					'type': row.type ?? 'string',
@@ -214,26 +218,14 @@ export default {
 		
 	},
 	created() {
-		// @ts-ignore
-		if (this.locale && this.locale !== 'en') {
-			try {
-				// @ts-ignore
-				this.changeLocale(this.locale);
-			} catch (e) {
-				// continue
-			}
+		try {
+			// @ts-ignore
+			this.changeLocale(this.locale ?? "en");
+		} catch (e) {
+			// continue
 		}
 	},
 	mounted() {
-		// @ts-ignore
-		if (this.locale && this.locale !== 'en') {
-			try {
-				// @ts-ignore
-				this.changeLocale(this.locale);
-			} catch (e) {
-				// continue
-			}
-		}
 		// @ts-ignore
 		this.url = this.options.url;
 		// @ts-ignore
@@ -275,7 +267,8 @@ export default {
 				},
 				suppressWarnings: true,
 				responsive: {
-					details: {// @ts-ignore
+					details: {
+						// @ts-ignore
 						renderer: function (api, rowIdx, columns) {
 							let data = '';
 							for (const key in columns) {
@@ -751,11 +744,11 @@ export default {
 			}
 		},
 		changeLocale(locale:string) {
-			// @ts-ignore
-			i18n.locale = locale;
-			// @ts-ignore
-			i18n.global.locale = locale
 			try {
+				// @ts-ignore
+				i18n.locale = locale;
+				// @ts-ignore
+				i18n.global.locale = locale
 				// @ts-ignore
 				const page = this.$refs.datatablevue.dt.page();
 				this.updateDataTable(Math.random(), page);

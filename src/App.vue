@@ -3,16 +3,11 @@
 </template>
 
 <script lang="ts">
-import DateTime from 'datatables.net-datetime';
-import JovencioDatatable from '../lib/JovencioDatatable.vue';
-import JovencioDataTableMeta from '../src/types/JovencioDataTableMeta';
-import JovencioDatatableCommon from '../src/services/JovencioDatatableCommon';
-import JovencioButtonGenerate from './types/JovencioButtonGenerate';
-import JovencioButtonProvider from './types/JovencioButtonProvider';
-import JovencioClousure from './types/JovencioClousure';
-import JovencioTrigger from './types/JovencioTrigger';
-import JovencioDataTableOption from './types/JovencioDataTableOption';
-import JovencioDataTableColumn from './types/JovencioDataTableColumn';
+import { DateTime } from 'datatables.net-datetime';
+import moment from 'moment';
+import  {JovencioDatatable, JovencioDatatableCommon}  from 'jovencio-datatable-vue';
+import type {JovencioDataTableColumn, JovencioButtonGenerate, JovencioDataTableMeta, JovencioButtonProvider, JovencioClousure, JovencioTrigger, JovencioDataTableOption}  from 'jovencio-datatable-vue';
+import 'jovencio-datatable-vue/dist/style.css';
 
 export default {
     data() {
@@ -32,6 +27,7 @@ export default {
                         id: post.id,
                         title: post.title,
                         body: post.body,
+                        created_at: new Date(),
                         actions: '',
                     }));
                 },
@@ -48,6 +44,9 @@ export default {
         JovencioDatatable
     },
     created() {
+        
+    },
+    mounted() {
         const self = this;
         this.tableColumns = [
             {
@@ -110,6 +109,14 @@ export default {
                 }
             },
             {
+                id: "created_at",
+                type: 'moment',
+                orderable: true,
+                searchable: false,
+                name: ("Created At"),
+                class: "border-b border-gray-300 px-5 py-5 text-xs dark:border-gray-500",
+            },
+            {
                 id: "actions",
                 name: ("Actions"),
                 orderable: false,
@@ -164,49 +171,39 @@ export default {
                     return JovencioDatatableCommon.providerButtonDT(provider);
                 },
                 triggers: function (addClousure: JovencioClousure) {
-                    addClousure(
-                        JovencioDatatableCommon.providerClousureDT({
-                            'selector': '.load-locks-datatable-clousure-actions',
-                            'enable': true,
-                            'type': 'lock',
-                        })
-                    );
+                    addClousure({
+                        'selector': '.load-locks-datatable-clousure-actions',
+                        'enable': true,
+                        'type': 'lock',
+                    });
 
-                    addClousure(
-                        JovencioDatatableCommon.providerClousureDT({
-                            'selector': '.load-edits-datatable-clousure-actions',
-                            'triggerSignature': 'triggerShow',
-                            'lock': 'lock-edit',
-                            'enable': false,
-                        })
-                    );
+                    addClousure({
+                        'selector': '.load-edits-datatable-clousure-actions',
+                        'triggerSignature': 'triggerShow',
+                        'lock': 'lock-edit',
+                        'enable': false,
+                    });
 
-                    addClousure(
-                        JovencioDatatableCommon.providerClousureDT({
-                            'selector': '.load-deletes-datatable-clousure-actions',
-                            'triggerSignature': 'triggerDelete',
-                            'lock': 'lock-delete',
-                            'enable': false,
-                        })
-                    );
+                    addClousure({
+                        'selector': '.load-deletes-datatable-clousure-actions',
+                        'triggerSignature': 'triggerDelete',
+                        'lock': 'lock-delete',
+                        'enable': false,
+                    });
 
-                    addClousure(
-                        JovencioDatatableCommon.providerClousureDT({
-                            'selector': '.load-duplicates-datatable-clousure-actions',
-                            'triggerSignature': 'triggerDuplicate',
-                            'lock': 'lock-duplicate',
-                            'enable': false,
-                        })
-                    );
+                    addClousure({
+                        'selector': '.load-duplicates-datatable-clousure-actions',
+                        'triggerSignature': 'triggerDuplicate',
+                        'lock': 'lock-duplicate',
+                        'enable': false,
+                    });
 
-                    addClousure(
-                        JovencioDatatableCommon.providerClousureDT({
-                            'selector': '.load-listen-datatable-clousure-body',
-                            'trigger': 'listen',
-                            'triggerSignature': 'triggerListen',
-                            'enable': true,
-                        })
-                    );
+                    addClousure({
+                        'selector': '.load-listen-datatable-clousure-body',
+                        'trigger': 'listen',
+                        'triggerSignature': 'triggerListen',
+                        'enable': true,
+                    });
                 }
             },
         ] as JovencioDataTableColumn[];

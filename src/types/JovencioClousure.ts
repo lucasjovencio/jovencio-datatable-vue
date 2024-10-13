@@ -1,5 +1,5 @@
-import JovencioActionClousure from "./JovencioActionClousure";
+import JovencioProviderClousure from "./JovencioProviderClousure";
 
 export default interface JovencioClousure {
-    (data: JovencioActionClousure[]): void;
-}
+    (provider: JovencioProviderClousure): void;
+}   

@@ -1,6 +1,7 @@
 import JovencioButtonProvider from '../types/JovencioButtonProvider';
 import JovencioActionClousure from '../types/JovencioActionClousure';
 import JovencioTrigger from '../types/JovencioTrigger';
+import JovencioProviderClousure from '../types/JovencioProviderClousure';
 
 class JovencioDatatableCommon {
     static  providerButtonDT(provider:JovencioButtonProvider) {
@@ -77,7 +78,7 @@ class JovencioDatatableCommon {
 		return `${text}`;
 	}
 
-    static providerClousureDT(provider:any) : JovencioActionClousure[] {
+    static providerClousureDT(provider:JovencioProviderClousure) : JovencioActionClousure[] {
 		const selector = provider.selector;
 		const trigger = provider.trigger ?? 'trigger';
 		const triggerSignature = provider.triggerSignature ?? null;

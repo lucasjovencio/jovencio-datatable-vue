@@ -1,7 +1,7 @@
 export default interface JovencioActionClousure {
     'selector': string,
     clousure(self:any): void,
-    'lock': boolean,
+    'lock': string,
     'timeout': any,
     'enable': boolean
 }
