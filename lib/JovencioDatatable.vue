@@ -15,23 +15,24 @@
 </template>
 
 <script lang="ts">
+import DateTime from 'datatables.net-datetime';
 import DataTable from "datatables.net-vue3"
 import DataTablesCore from "datatables.net"// @ts-ignore
-import type ColumnDataTable from "./types/ColumnDataTable"
-import DateTime from 'datatables.net-datetime';
+import type JovencioDataTableColumn from "../src/types/JovencioDataTableColumn"
 import 'datatables.net-searchbuilder-dt';
 import { ref } from 'vue';
-import useTippy from 'tippy.js';
 import 'datatables.net-responsive-dt'
-import { createI18n, useI18n } from 'vue-i18n';
-import br from "./locales/pt-br.json";
-import en from "./locales/en.json";
+import useTippy from 'tippy.js';
+import { createI18n } from 'vue-i18n';
+import br from "../src/locales/pt-br.json";
+import en from "../src/locales/en.json";
+import JovencioActionClousure from '../src/types/JovencioActionClousure';
+import JovencioDataTableOption from '../src/types/JovencioDataTableOption';
 
-// import { useI18n } from 'vue-i18n'
 const i18n = createI18n({
-	locale: "br",
-	fallbackLocale: "br",
-	messages: { br, en },
+	locale: "en",
+	fallbackLocale: "en",
+	messages: { br: br, en: en, 'pt-BR': br },
 });
 
 DataTable.use(DataTablesCore)
@@ -51,7 +52,7 @@ export default {
 			default: '',
 		},
 		options: {
-			type: Object,
+			type: Object as () => JovencioDataTableOption,
 			required: false,
 		},
 		updateLanguage: {
@@ -66,15 +67,14 @@ export default {
 		},
 		locale: {
 			type: String,
-			required: false,
-			default: 'en'
+			required: false
 		},
 	},
 	data() {
 		return {
 			count: 0,
 			dataReady: false,
-			clousures: [],
+			clousures: [] as JovencioActionClousure[],
 			callbackHeader: null,
 			optionsDataTable: {},
 			url: '',
@@ -114,16 +114,24 @@ export default {
 			// @ts-ignore
 			self.unListen();
 			// @ts-ignore
-			self.clousures = [];// @ts-ignore
-			return self.columns.map((row: ColumnDataTable) => {
+			self.clousures = [] as JovencioActionClousure[];// @ts-ignore
+
+			const addClousure = function(data:JovencioActionClousure[]) {
+				// @ts-ignore
+				self.clousures.push(...data)
+			}
+			// @ts-ignore
+			return self.columns.map((row: JovencioDataTableColumn) => {
 				try {
-					row.triggers(self);
+					// @ts-ignore
+					row.triggers(addClousure);
 				} catch (e) {
 					// continue
 				}
 
 				let render = null;
 				try {
+					// @ts-ignore
 					render = row.render;
 				} catch (e) {
 					// continue
@@ -146,7 +154,7 @@ export default {
 	},
 	watch: {
 		// @ts-ignore
-		update(newVal, oldVal) {
+		update(newVal:any, oldVal:any) {
 			const self = this;
 			newVal = String(newVal);
 			let reload = false;
@@ -171,7 +179,7 @@ export default {
 			}
 		},
 		// @ts-ignore
-		updateLanguage(newVal, oldVal) {
+		updateLanguage(newVal:any, oldVal:any) {
 			const self = this;
 			// @ts-ignore
 			if (this.dataReady && newVal && newVal !== oldVal) {
@@ -182,25 +190,50 @@ export default {
 			}
 		},
 		// @ts-ignore
-		disableComponentSyncManually(newVal, oldVal) {
+		disableComponentSyncManually(newVal:any, oldVal:any) {
 			// @ts-ignore
 			if (this.dataReady && newVal && newVal !== oldVal) {
 				// @ts-ignore
 				this.dataReady = false;
 			}
 		},
-		locale(newVal, oldVal) {
+		locale(newVal:any, oldVal:any) {
 			// @ts-ignore
-			if (this.dataReady && newVal && newVal !== oldVal) {
+			if (newVal && newVal !== oldVal) {
 				// @ts-ignore
-				this.changeLocale(newVal);
+				setTimeout(() => {
+					try {
+						// @ts-ignore
+						this.changeLocale(newVal);
+					} catch (e) {
+						// continue
+					}
+				}, 500);
 			}
 		},
 		
 	},
 	created() {
+		// @ts-ignore
+		if (this.locale && this.locale !== 'en') {
+			try {
+				// @ts-ignore
+				this.changeLocale(this.locale);
+			} catch (e) {
+				// continue
+			}
+		}
 	},
 	mounted() {
+		// @ts-ignore
+		if (this.locale && this.locale !== 'en') {
+			try {
+				// @ts-ignore
+				this.changeLocale(this.locale);
+			} catch (e) {
+				// continue
+			}
+		}
 		// @ts-ignore
 		this.url = this.options.url;
 		// @ts-ignore
@@ -218,7 +251,7 @@ export default {
 		// @ts-ignore
 		this.dataReady = false;
 	},// @ts-ignore
-	beforeRouteLeave(to, from, next) {
+	beforeRouteLeave(to:any, from:any, next:any) {
 		next();
 	},
 	destroyed() {
@@ -235,9 +268,10 @@ export default {
 			const self = this;
 
 			let options = {
+				// @ts-ignore
 				ajax: {
 					// @ts-ignore
-					url: this.url
+					url: self.url
 				},
 				suppressWarnings: true,
 				responsive: {
@@ -308,27 +342,28 @@ export default {
 					self.callbackHeader = oSettings;
 				}
 			};
-
-			if (this.options.dataSrc) {
+			// @ts-ignore
+			if (self.options.dataSrc) {
 				options = {// @ts-ignore
 					...options, ajax: {
-						url: this.url, // @ts-ignore
-						dataSrc: this.options.dataSrc,
+						// @ts-ignore
+						url: self.url, // @ts-ignore
+						dataSrc: self.options.dataSrc,
 					}
 				};
 			}
 
 			// @ts-ignore
-			if (this.options.searchBuilder && this.options.searchBuilder.enable) {
+			if (self.options.searchBuilder && self.options.searchBuilder.enable) {
 				options = {// @ts-ignore
 					...options, dom: 'Qlfrtip', searchBuilder: {
 						depthLimit: 3, // @ts-ignore
-						columns: this.options.searchBuilder.columns,
+						columns: self.options.searchBuilder.columns,
 					}
 				};
 			}
 			// @ts-ignore
-			this.optionsDataTable = ref(options);
+			self.optionsDataTable = ref(options);
 		},
 		// @ts-ignore
 		setLanguageDataTable() {
@@ -620,7 +655,7 @@ export default {
 			};
 		},
 		// @ts-ignore
-		updateDataTable(key, page) {
+		updateDataTable(key:any, page:any) {
 			const self = this;
 			// @ts-ignore
 			if (self.$refs && self.$refs.datatablevue && self.$refs.datatablevue.dt) {
@@ -716,17 +751,22 @@ export default {
 			}
 		},
 		changeLocale(locale:string) {
-			const page = this.$refs.datatablevue.dt.page();
 			// @ts-ignore
 			i18n.locale = locale;
 			// @ts-ignore
 			i18n.global.locale = locale
-			this.updateDataTable(Math.random(), page);
+			try {
+				// @ts-ignore
+				const page = this.$refs.datatablevue.dt.page();
+				this.updateDataTable(Math.random(), page);
+			} catch (e) {
+				// continue
+			}
 		},
 		setTips() {
 			try {// @ts-ignore
-				// const elements = document.querySelectorAll('.tippys-load');
 				setTimeout(() => {
+					// @ts-ignore
 					useTippy('.tippys-load', {
 						content: reference => reference.getAttribute('data-tippy')
 					});
