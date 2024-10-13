@@ -199,9 +199,6 @@ export default {
 		},
 		locale(newVal:any, oldVal:any) {
 			// @ts-ignore
-			console.log('aaa')
-			console.log(newVal)
-			console.log(oldVal)
 			if (newVal && newVal !== oldVal) {
 				// @ts-ignore
 				setTimeout(() => {
@@ -217,7 +214,7 @@ export default {
 		
 	},
 	created() {
-		if (this.locale !== 'en') {
+		if (this.locale && this.locale !== 'en') {
 			try {
 				// @ts-ignore
 				this.changeLocale(this.locale);
@@ -227,7 +224,7 @@ export default {
 		}
 	},
 	mounted() {
-		if (this.locale !== 'en') {
+		if (this.locale && this.locale !== 'en') {
 			try {
 				// @ts-ignore
 				this.changeLocale(this.locale);
