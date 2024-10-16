@@ -2,7 +2,7 @@
 	<div>
 		<div v-if="dataReady">
 			<div v-show="enableAfterInit">
-				<DataTable ref="datatablevue" :key="refreshKey" :options="optionsDataTable" :columns="columnsDataTable"
+				<DataTable ref="jovencioDataTable" :key="refreshKey" :options="optionsDataTable" :columns="columnsDataTable"
 					:class="classTable" />
 			</div>
 			<div class="text-gray-700 dark:text-gray-100" v-if="!enableAfterInit">
@@ -15,15 +15,13 @@
 </template>
 
 <script lang="ts">
-import { DateTime } from 'datatables.net-datetime';
-import 'moment';
+// @ts-ignore
+import $ from 'jquery';
 import DataTable from "datatables.net-vue3"
-import 'datatables.net';
-import DataTablesCore from "datatables.net"// @ts-ignore
+import DataTablesCore from "datatables.net"
+// @ts-ignore
 import type JovencioDataTableColumn from "../src/types/JovencioDataTableColumn"
-import 'datatables.net-searchbuilder-dt';
 import { ref } from 'vue';
-import 'datatables.net-responsive-dt'
 import useTippy from 'tippy.js';
 import { createI18n } from 'vue-i18n';
 import br from "../src/locales/pt-br.json";
@@ -32,14 +30,23 @@ import JovencioActionClousure from '../src/types/JovencioActionClousure';
 import { JovencioDataTableOption } from './main';
 import { JovencioDatatableCommon } from './main';
 import JovencioProviderClousure from '../src/types/JovencioProviderClousure';
+import moment  from 'moment';
+
+(async () => {
+  await import('datatables.net-datetime');
+  await import('datatables.net-searchbuilder-dt');
+  await import('datatables.net-responsive-dt');
+})();
+// @ts-ignore
+window.moment = moment;
 
 const i18n = createI18n({
 	locale: "en",
 	fallbackLocale: "en",
 	messages: { br: br, en: en, 'pt-BR': br },
 });
-DataTable.use(DataTablesCore)
 
+DataTable.use(DataTablesCore)
 export default {
 	name: 'JovencioDatatable',
 	components: {
@@ -58,11 +65,6 @@ export default {
 		options: {
 			type: Object as () => JovencioDataTableOption,
 			required: false,
-		},
-		updateLanguage: {
-			type: Number,
-			required: false,
-			default: 0
 		},
 		disableComponentSyncManually: {
 			type: Number,
@@ -84,7 +86,8 @@ export default {
 			url: '',
 			refreshKey: 1,
 			enableAfterInit: true,
-			loading: true
+			loading: true,
+			localeLocal:'en'
 		};
 	},
 	computed: {
@@ -103,14 +106,6 @@ export default {
 				return this.options.classTable
 			}
 			return "min-w-full leading-normal"
-		},
-		classTableTh() : String {
-			// @ts-ignore
-			if (this.options && this.options.classTableTh) {
-				// @ts-ignore
-				return this.options.classTableTh
-			}
-			return "border-b-2 border-gray-300 bg-gray-200 text-gray-600 dark:border-gray-500 dark:bg-slate-900 dark:text-gray-200"
 		},
 		// @ts-ignore
 		columnsDataTable() : Array {
@@ -141,6 +136,7 @@ export default {
 				} catch (e) {
 					// continue
 				}
+
 				return {
 					'data': row.id,
 					// @ts-ignore
@@ -168,7 +164,7 @@ export default {
 				if (newVal.includes('remove')) {// @ts-ignore
 					reload = (self.callbackHeader.aoData.length <= 1) ? true : false;
 				}// @ts-ignore
-				let page = self.$refs.datatablevue.dt.page();
+				let page = self.$refs.jovencioDataTable.dt.page();
 
 				if (reload && page > 1) {
 					// @ts-ignore
@@ -177,20 +173,9 @@ export default {
 					self.updateDataTable(`${Date.now()}.${Math.random()}`, page);
 				} else {
 					// @ts-ignore
-					self.$refs.datatablevue.dt.ajax.reload(null, reload)
+					self.$refs.jovencioDataTable.dt.ajax.reload(null, reload)
 				}
 
-			}
-		},
-		// @ts-ignore
-		updateLanguage(newVal:any, oldVal:any) {
-			const self = this;
-			// @ts-ignore
-			if (this.dataReady && newVal && newVal !== oldVal) {
-				// @ts-ignore
-				const page = self.$refs.datatablevue.dt.page();
-				// @ts-ignore
-				self.updateDataTable(newVal, page);
 			}
 		},
 		// @ts-ignore
@@ -203,7 +188,9 @@ export default {
 		},
 		locale(newVal:any, oldVal:any) {
 			// @ts-ignore
-			if (newVal && newVal !== oldVal) {
+			if (newVal && newVal !== this.localeLocal) {
+				// @ts-ignore
+				this.localeLocal = newVal;
 				// @ts-ignore
 				setTimeout(() => {
 					try {
@@ -218,12 +205,7 @@ export default {
 		
 	},
 	created() {
-		try {
-			// @ts-ignore
-			this.changeLocale(this.locale ?? "en");
-		} catch (e) {
-			// continue
-		}
+		
 	},
 	mounted() {
 		// @ts-ignore
@@ -233,7 +215,8 @@ export default {
 		setTimeout(() => {
 			// @ts-ignore
 			this.dataReady = true;
-		}, 200);
+			this.setLanguageDate();
+		}, 500);
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -243,9 +226,6 @@ export default {
 		// @ts-ignore
 		this.dataReady = false;
 	},// @ts-ignore
-	beforeRouteLeave(to:any, from:any, next:any) {
-		next();
-	},
 	destroyed() {
 		// @ts-ignore
 		this.dataReady = false;
@@ -647,16 +627,59 @@ export default {
 				"searchPlaceholder": i18n.global.t("datatable.searchPlaceholder")// @ts-ignore
 			};
 		},
+		setLanguageDate() {
+			setTimeout(() => {
+				$.extend( true, $.fn.dataTable.DateTime.defaults, {
+					"i18n": {
+						// @ts-ignore
+						"unknown": i18n.global.t("date.i18n.unknown"),// @ts-ignore
+						"hours": i18n.global.t("date.i18n.hours"),// @ts-ignore
+						"minutes": i18n.global.t("date.i18n.minutes"),// @ts-ignore
+						"seconds": i18n.global.t("date.i18n.seconds"),// @ts-ignore
+						"previous": i18n.global.t("date.i18n.previous"),// @ts-ignore
+						"next": i18n.global.t("date.i18n.next"),// @ts-ignore
+						"months": [
+							// @ts-ignore
+							i18n.global.t("date.i18n.months.january"),// @ts-ignore
+							i18n.global.t("date.i18n.months.february"),// @ts-ignore
+							i18n.global.t("date.i18n.months.march"),// @ts-ignore
+							i18n.global.t("date.i18n.months.april"),// @ts-ignore
+							i18n.global.t("date.i18n.months.may"),// @ts-ignore// @ts-ignore
+							i18n.global.t("date.i18n.months.june"),// @ts-ignore
+							i18n.global.t("date.i18n.months.july"),// @ts-ignore
+							i18n.global.t("date.i18n.months.august"),// @ts-ignore
+							i18n.global.t("date.i18n.months.september"),// @ts-ignore
+							i18n.global.t("date.i18n.months.october"),// @ts-ignore
+							i18n.global.t("date.i18n.months.november"),// @ts-ignore
+							i18n.global.t("date.i18n.months.december")
+						],
+						"weekdays": [
+							// @ts-ignore
+							i18n.global.t("date.i18n.weekdays.monday"),// @ts-ignore
+							i18n.global.t("date.i18n.weekdays.tuesday"),// @ts-ignore
+							i18n.global.t("date.i18n.weekdays.wednesday"),// @ts-ignore
+							i18n.global.t("date.i18n.weekdays.thursday"),// @ts-ignore
+							i18n.global.t("date.i18n.weekdays.friday"),// @ts-ignore
+							i18n.global.t("date.i18n.weekdays.saturday"),// @ts-ignore
+							i18n.global.t("date.i18n.weekdays.sunday"),// @ts-ignore
+						],
+					},
+					// @ts-ignore
+					"locale": i18n.global.t("date.locale"),// @ts-ignore
+					"format": i18n.global.t("date.format")
+				});
+			}, 500);
+		},
 		// @ts-ignore
 		updateDataTable(key:any, page:any) {
 			const self = this;
 			// @ts-ignore
-			if (self.$refs && self.$refs.datatablevue && self.$refs.datatablevue.dt) {
+			if (self.$refs && self.$refs.jovencioDataTable && self.$refs.jovencioDataTable.dt) {
 				const state = {
 					// @ts-ignore
-					search: self.$refs.datatablevue.dt.search(),
+					search: self.$refs.jovencioDataTable.dt.search(),
 					// @ts-ignore
-					searchBuilder: self.$refs.datatablevue.dt.state().searchBuilder
+					searchBuilder: self.$refs.jovencioDataTable.dt.state().searchBuilder
 				};
 
 				this.createOptions();
@@ -750,8 +773,9 @@ export default {
 				// @ts-ignore
 				i18n.global.locale = locale
 				// @ts-ignore
-				const page = this.$refs.datatablevue.dt.page();
+				const page = this.$refs.jovencioDataTable.dt.page();
 				this.updateDataTable(Math.random(), page);
+				this.setLanguageDate()
 			} catch (e) {
 				// continue
 			}

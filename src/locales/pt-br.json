@@ -243,5 +243,40 @@
         "infoEmpty": "Mostrando 0 até 0 de 0 registro(s)",
         "processing": "Carregando...",
         "searchPlaceholder": "Buscar registros"
+    },
+    "date": {
+        "i18n": {
+            "unknown": "?",
+            "hours": "Hora",
+            "minutes": "Minuto",
+            "seconds": "Segundo",
+            "previous": "Anterior",
+            "next": "Próximo",
+            "months": {
+                "january": "Janeiro",
+                "february": "Fevereiro",
+                "march": "Março",
+                "april": "Abril",
+                "may": "Maio",
+                "june": "Junho",
+                "july": "Julho",
+                "august": "Agosto",
+                "september": "Setembro",
+                "october": "Outubro",
+                "november": "Novembro",
+                "december": "Dezembro"
+            },
+            "weekdays": {
+                "monday": "Seg",
+                "tuesday": "Ter",
+                "wednesday": "Qua",
+                "thursday": "Qui",
+                "friday": "Sex",
+                "saturday": "Sáb",
+                "sunday": "Dom"
+            }
+        },
+        "locale": "pt-BR",
+        "format": "DD/MM/YYYY"
     }
 }

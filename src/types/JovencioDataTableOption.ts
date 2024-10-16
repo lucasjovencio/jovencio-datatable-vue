@@ -12,5 +12,7 @@ export default interface JovencioDataTableOption {
     searchBuilder?: {
         enable: boolean,
         columns: number[],
-    }
+    },
+
+    classTable: string
 }

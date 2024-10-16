@@ -1,6 +1,6 @@
 import JovencioClousure from "./JovencioClousure";
 import JovencioDataTableMeta from "./JovencioDataTableMeta";
-type Types = 'string' | 'num' | 'moment' | 'date';
+type Types = 'string' | 'num' | 'moment';
 
 export default interface JovencioDataTableColumn {
     id: string,
