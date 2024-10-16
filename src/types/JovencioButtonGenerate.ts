@@ -2,7 +2,9 @@ interface JovencioButtonGenerateBase {
     enable: boolean,
     name: string,
     show_name?: boolean,
-    order: number
+    order: number,
+    html_icon?:string,
+    svg?: string,
 }
 
 interface JovencioButtonBlockGenerate extends JovencioButtonGenerateBase {
@@ -10,14 +12,12 @@ interface JovencioButtonBlockGenerate extends JovencioButtonGenerateBase {
     svg_secondary?: string,
     custom_element?: string,
     class_id?: string;
-    svg?: string,
     class?: string,
 }
 
 type AllowedKeys = 'edit' | 'delete';
 interface JovencioButtonRegularGenerate extends JovencioButtonGenerateBase {
     key: AllowedKeys,
-    svg?: string,
     class_id?: string;
     custom_element?: string,
     class?: string,
@@ -27,7 +27,6 @@ interface JovencioButtonCustomGenerate extends JovencioButtonGenerateBase {
     class_id: string;
     custom_element: string,
     key: string,
-    svg: string,
     svg_secondary?: string,
     class: string,
 }
