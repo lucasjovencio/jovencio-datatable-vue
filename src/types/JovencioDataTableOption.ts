@@ -14,5 +14,5 @@ export default interface JovencioDataTableOption {
         columns: number[],
     },
 
-    classTable: string
+    classTable?: string
 }
