@@ -1,20 +1,12 @@
 <template>
-	<div>
-		<div v-if="dataReady">
-			<div v-show="enableAfterInit">
-				<DataTable ref="jovencioDataTable" :key="refreshKey" :options="optionsDataTable" :columns="columnsDataTable"
-					:class="classTable" />
-			</div>
-			<div class="text-gray-700 dark:text-gray-100" v-if="!enableAfterInit">
-				<div class="pt-10 pb-10 text-center">
-					<span class="fa fa-circle-notch fa-spin fa-5x" ></span>
-				</div>
-			</div>
-		</div>
+	<div v-if="dataReady">
+		<DataTable v-show="enableAfterInit" ref="jovencioDataTable" :key="refreshKey" :options="optionsDataTable" :columns="columnsDataTable"
+			:class="classTable" />
 	</div>
 </template>
 
 <script lang="ts">
+const loadingFinishImports = ref(false)
 // @ts-ignore
 import $ from 'jquery';
 import DataTable from "datatables.net-vue3"
@@ -36,14 +28,17 @@ import moment  from 'moment';
   await import('datatables.net-datetime');
   await import('datatables.net-searchbuilder-dt');
   await import('datatables.net-responsive-dt');
+  loadingFinishImports.value = true;
 })();
+
 // @ts-ignore
-window.moment = moment;
+if (!window.moment) // @ts-ignore
+	window.moment = moment;
 
 const i18n = createI18n({
 	locale: "en",
 	fallbackLocale: "en",
-	messages: { br: br, en: en, 'pt-BR': br },
+	messages: { br: br, en: en, 'pt-BR': br, 'pt-br': br },
 });
 
 DataTable.use(DataTablesCore)
@@ -55,7 +50,7 @@ export default {
 	props: {
 		columns: {
 			type: Array,
-			required: false,
+			required: true,
 		},
 		update: {
 			type: String,
@@ -64,21 +59,19 @@ export default {
 		},
 		options: {
 			type: Object as () => JovencioDataTableOption,
-			required: false,
-		},
-		disableComponentSyncManually: {
-			type: Number,
-			required: false,
-			default: 0
+			required: true,
 		},
 		locale: {
 			type: String,
-			required: false
+			default: 'en',
+			required: false,
+			validator: function (value:string) {
+				return ['en', 'br', "pt-BR", "pt-br"].includes(value);
+			}
 		},
 	},
 	data() {
 		return {
-			count: 0,
 			dataReady: false,
 			clousures: [] as JovencioActionClousure[],
 			callbackHeader: null,
@@ -86,19 +79,12 @@ export default {
 			url: '',
 			refreshKey: 1,
 			enableAfterInit: true,
-			loading: true,
-			localeLocal:'en'
+			localeLocal:'en',
+			updateLocal: null,
+			fullImport:loadingFinishImports
 		};
 	},
 	computed: {
-		nameTable() : String {
-			// @ts-ignore
-			if (this.options && this.options.name) {
-				// @ts-ignore
-				return this.options.name
-			}
-			return ""
-		},
 		classTable() : String {
 			// @ts-ignore
 			if (this.options && this.options.classTable) {
@@ -159,11 +145,13 @@ export default {
 			newVal = String(newVal);
 			let reload = false;
 			// @ts-ignore
-			if (this.callbackHeader && newVal != "" && newVal !== oldVal) {
+			if (self.dataReady && self.callbackHeader && newVal != "" && newVal !== self.updateLocal) {
+				self.updateLocal = newVal;
 				// @ts-ignore
 				if (newVal.includes('remove')) {// @ts-ignore
 					reload = (self.callbackHeader.aoData.length <= 1) ? true : false;
 				}// @ts-ignore
+
 				let page = self.$refs.jovencioDataTable.dt.page();
 
 				if (reload && page > 1) {
@@ -175,48 +163,33 @@ export default {
 					// @ts-ignore
 					self.$refs.jovencioDataTable.dt.ajax.reload(null, reload)
 				}
-
 			}
 		},
-		// @ts-ignore
-		disableComponentSyncManually(newVal:any, oldVal:any) {
+		locale(newVal:string, oldVal:string) {
 			// @ts-ignore
-			if (this.dataReady && newVal && newVal !== oldVal) {
-				// @ts-ignore
-				this.dataReady = false;
-			}
-		},
-		locale(newVal:any, oldVal:any) {
-			// @ts-ignore
-			if (newVal && newVal !== this.localeLocal) {
+			if (this.dataReady && newVal && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
 				// @ts-ignore
 				this.localeLocal = newVal;
 				// @ts-ignore
-				setTimeout(() => {
-					try {
-						// @ts-ignore
-						this.changeLocale(newVal);
-					} catch (e) {
-						// continue
-					}
-				}, 500);
+				this.changeLocale(newVal);
 			}
 		},
-		
+		fullImport(newVal:any, oldVal:any) {
+			if (newVal) {
+				// @ts-ignore
+				this.setLanguageDate();
+				// @ts-ignore
+				this.dataReady = true;
+			}
+		}
 	},
 	created() {
-		
 	},
 	mounted() {
 		// @ts-ignore
 		this.url = this.options.url;
 		// @ts-ignore
 		this.createOptions();
-		setTimeout(() => {
-			// @ts-ignore
-			this.dataReady = true;
-			this.setLanguageDate();
-		}, 500);
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -774,8 +747,8 @@ export default {
 				i18n.global.locale = locale
 				// @ts-ignore
 				const page = this.$refs.jovencioDataTable.dt.page();
-				this.updateDataTable(Math.random(), page);
 				this.setLanguageDate()
+				this.updateDataTable(Math.random(), page);
 			} catch (e) {
 				// continue
 			}
@@ -825,5 +798,8 @@ div.dt-container .dt-paging {
 .dtsb-button div {
 	background: #9000;
 	transform: rotate(270deg);
+}
+.opacity-50 {
+	opacity: 0.5;
 }
 </style>
