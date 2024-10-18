@@ -24,6 +24,9 @@ import { JovencioDatatableCommon } from './main';
 import JovencioProviderClousure from '../src/types/JovencioProviderClousure';
 import moment  from 'moment';
 
+// @ts-ignore
+if (!window.jQuery) window.jQuery = $;
+
 (async () => {
   await import('datatables.net-datetime');
   await import('datatables.net-searchbuilder-dt');
@@ -32,8 +35,7 @@ import moment  from 'moment';
 })();
 
 // @ts-ignore
-if (!window.moment) // @ts-ignore
-	window.moment = moment;
+if (!window.moment) window.moment = moment;
 
 const i18n = createI18n({
 	locale: "en",
@@ -80,6 +82,9 @@ export default {
 			refreshKey: 1,
 			enableAfterInit: true,
 			localeLocal:'en',
+			formatDateLocal:'MM/DD/YYYY',
+			oldFormatDateLocal:'MM/DD/YYYY',
+			oldLocaleLocal:'en',
 			updateLocal: null,
 			fullImport:loadingFinishImports
 		};
@@ -168,6 +173,7 @@ export default {
 		locale(newVal:string, oldVal:string) {
 			// @ts-ignore
 			if (this.dataReady && newVal && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
+				this.oldLocaleLocal = this.localeLocal;
 				// @ts-ignore
 				this.localeLocal = newVal;
 				// @ts-ignore
@@ -301,11 +307,17 @@ export default {
 
 			// @ts-ignore
 			if (self.options.searchBuilder && self.options.searchBuilder.enable) {
+				const searchBuilderOptions:any = {
+					depthLimit: 3,
+					columns: self.options.searchBuilder.columns,
+				};
+
+				if (self.options.searchBuilder.conditions) {
+					searchBuilderOptions.conditions = self.options.searchBuilder.conditions
+				}
+
 				options = {// @ts-ignore
-					...options, dom: 'Qlfrtip', searchBuilder: {
-						depthLimit: 3, // @ts-ignore
-						columns: self.options.searchBuilder.columns,
-					}
+					...options, dom: 'Qlfrtip', searchBuilder: searchBuilderOptions
 				};
 			}
 			// @ts-ignore
@@ -644,10 +656,30 @@ export default {
 			}, 500);
 		},
 		// @ts-ignore
+		adjustMomentValues(obj) {
+			if (Array.isArray(obj)) {
+				obj.forEach(item => this.adjustMomentValues(item));
+			} else if (typeof obj === 'object' && obj !== null) {
+				if (obj.type === 'moment') {
+					// Ajuste o valor aqui
+					obj.value = obj.value.map((date:string) => {
+						// Exemplo: adicionar um dia à data
+						const formattedDate = moment(date, this.oldFormatDateLocal).format(this.formatDateLocal);
+						return formattedDate;
+					});
+				}
+				for (let key in obj) {
+					this.adjustMomentValues(obj[key]);
+				}
+			}
+			return obj;
+		},
 		updateDataTable(key:any, page:any) {
 			const self = this;
 			// @ts-ignore
 			if (self.$refs && self.$refs.jovencioDataTable && self.$refs.jovencioDataTable.dt) {
+				// @ts-ignore
+				this.adjustMomentValues(self.$refs.jovencioDataTable.dt.state().searchBuilder);
 				const state = {
 					// @ts-ignore
 					search: self.$refs.jovencioDataTable.dt.search(),
@@ -745,6 +777,11 @@ export default {
 				i18n.locale = locale;
 				// @ts-ignore
 				i18n.global.locale = locale
+				// @ts-ignore
+				this.oldFormatDateLocal = this.formatDateLocal;
+				// @ts-ignore
+				this.formatDateLocal = i18n.global.t("date.format")
+
 				// @ts-ignore
 				const page = this.$refs.jovencioDataTable.dt.page();
 				this.setLanguageDate()
