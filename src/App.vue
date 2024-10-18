@@ -39,7 +39,7 @@ export default {
                 },
                 {
                     id: "title",
-                    type: 'string',
+                    type: 'example-select-title',
                     orderable: false,
                     searchable: false,
                     name: ("Title"),
@@ -194,7 +194,65 @@ export default {
                
                 searchBuilder: {
                     enable: true,
-                    columns: [0, 1, 2, 3]
+                    columns: [0, 1, 2, 3],
+                    // example on documentation https://datatables.net/extensions/searchbuilder/examples/customisation/plugin.html
+                    conditions: {
+                        "example-select-title": {
+                            '=': {
+                                isInputValid: function (el) {
+                                    return window.jQuery(el[0]).find('option:selected').length > 0;
+                                },
+                                conditionName: function(dt) {
+                                    return dt.settings()[0].oLanguage.searchBuilder.conditions.string.equals;
+                                },
+                                inputValue: function (el) {
+                                    return window.jQuery(el[0]).find('option:selected').map(function() {
+                                        return window.jQuery(this).val();
+                                    }).get();
+                                },
+                                init: function (that, fn, preDefined = null) {
+                                    let column = window.jQuery(that.dom.data).children('option:selected').val();
+                                    let indexArray = that.s.dt.rows().indexes().toArray();
+                                    let added = [];
+
+                                    let el = window.jQuery('<select class="form-control" style="width: 300px"></select>');
+                                    window.jQuery(el).append('<option value="">Selecione um valor</option>');
+
+                                    for (let index of indexArray) {
+                                        let cell = that.s.dt.cell(index, column);
+                                        let value = {
+                                            filter: cell.render(that.c.orthogonal.search),
+                                            index,
+                                            text: cell.render('display')
+                                        };
+
+                                        if (added.indexOf(value.filter) === -1) {
+                                            let opt = window.jQuery('<option>', {
+                                                text: value.text,
+                                                value: value.filter
+                                            });
+
+                                            window.jQuery(el).append(opt);
+                                            added.push(value.filter);
+
+                                            if (preDefined !== null && opt.val() === preDefined[0]) {
+                                                opt.prop('selected', true);
+                                            }
+                                        }
+                                    }
+
+                                    el.on('change', function () {
+                                        fn(that, el);
+                                    });
+
+                                    return el;
+                                },
+                                search: function (value, comparison) {
+                                    return value === comparison[0];
+                                }
+                            }
+                        }
+                    }
                 },
                 
                 classTable: "min-w-full leading-normal",
