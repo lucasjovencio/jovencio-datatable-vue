@@ -1,7 +1,7 @@
 {
   "name": "jovencio-datatable-vue",
   "private": false,
-  "version": "1.1.26",
+  "version": "1.1.28",
   "type": "module",
   "files": [
     "dist"
@@ -46,5 +46,13 @@
     "jquery": "^3.7.1"
   },
   "dependencies": {
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucasjovencio/jovencio-datatable-vue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lucasjovencio/jovencio-datatable-vue/issues"
+  },
+  "homepage": "https://github.com/lucasjovencio/jovencio-datatable-vue"
 }
