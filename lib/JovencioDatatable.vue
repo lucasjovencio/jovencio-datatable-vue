@@ -1,6 +1,6 @@
 <template>
 	<div v-if="dataReady">
-		<DataTable v-show="enableAfterInit" ref="jovencioDataTable" :key="refreshKey" :options="optionsDataTable" :columns="columnsDataTable"
+		<DataTable :id="datatableId" v-show="enableAfterInit" ref="jovencioDataTable" :key="refreshKey" :options="optionsDataTable" :columns="columnsDataTable"
 			:class="classTable" />
 	</div>
 </template>
@@ -86,7 +86,8 @@ export default {
 			oldFormatDateLocal:'MM/DD/YYYY',
 			oldLocaleLocal:'en',
 			updateLocal: null,
-			fullImport:loadingFinishImports
+			fullImport:loadingFinishImports,
+			datatableId: null as any
 		};
 	},
 	computed: {
@@ -141,7 +142,7 @@ export default {
 					'searchable': row.searchable
 				}
 			})
-		},
+		}
 	},
 	watch: {
 		// @ts-ignore
@@ -185,28 +186,43 @@ export default {
 				// @ts-ignore
 				this.setLanguageDate();
 				// @ts-ignore
+				this.datatableId = this.generateUniqueId();
 				this.dataReady = true;
 			}
 		}
 	},
 	created() {
+		
 	},
 	mounted() {
+		if (loadingFinishImports.value) {
+			this.datatableId = this.generateUniqueId();
+			this.dataReady = true;
+		}
 		// @ts-ignore
 		this.url = this.options.url;
 		// @ts-ignore
 		this.createOptions();
+
+		setTimeout(() => {
+			if (this.locale !== this.localeLocal) {
+				this.changeLocale(this.locale)
+			}
+		}, 300)
 	},
 	onUnmounted() {
 		// @ts-ignore
+		this.datatableId = this.generateUniqueId();
 		this.dataReady = false;
 	},
 	onDeactivated() {
 		// @ts-ignore
+		this.datatableId = this.generateUniqueId();
 		this.dataReady = false;
 	},// @ts-ignore
 	destroyed() {
 		// @ts-ignore
+		this.datatableId = this.generateUniqueId();
 		this.dataReady = false;
 		// @ts-ignore
 		this.callbackHeader = null;
@@ -216,112 +232,116 @@ export default {
 	updated() { },
 	methods: {
 		createOptions() {
-			const self = this;
-
-			let options = {
-				// @ts-ignore
-				ajax: {
+			try {
+				const self = this;
+	
+				let options = {
 					// @ts-ignore
-					url: self.url
-				},
-				suppressWarnings: true,
-				responsive: {
-					details: {
+					ajax: {
 						// @ts-ignore
-						renderer: function (api, rowIdx, columns) {
-							let data = '';
-							for (const key in columns) {
-								const column = columns[key]
-								data += `<div class="mb-2 flex flex-row items-center"> <span class="mr-1">${column.title}:</span> ${column.data} </div>`;
+						url: self.url
+					},
+					suppressWarnings: true,
+					responsive: {
+						details: {
+							// @ts-ignore
+							renderer: function (api, rowIdx, columns) {
+								let data = '';
+								for (const key in columns) {
+									const column = columns[key]
+									data += `<div class="mb-2 flex flex-row items-center"> <span class="mr-1">${column.title}:</span> ${column.data} </div>`;
+								}
+								const expressaoRegular = new RegExp("\\action-fulltable\\b", "gi");
+								data = data.replace(expressaoRegular, 'action-responsive-table');
+	
+								setTimeout(async () => {
+									try {
+										await self.unListen()
+									} catch (e) {
+										//
+									}
+	
+									try {
+										self.listen();
+									} catch (e) {
+										//
+									}
+	
+									try {// @ts-ignore
+										self.options.handlerFooterCallback();
+									} catch (e) {
+										// continue
+									}
+								}, 500)
+								return data;
 							}
-							const expressaoRegular = new RegExp("\\action-fulltable\\b", "gi");
-							data = data.replace(expressaoRegular, 'action-responsive-table');
-
-							setTimeout(async () => {
-								try {
-									await self.unListen()
-								} catch (e) {
-									//
-								}
-
-								try {
-									self.listen();
-								} catch (e) {
-									//
-								}
-
-								try {// @ts-ignore
-									self.options.handlerFooterCallback();
-								} catch (e) {
-									// continue
-								}
-							}, 500)
-							return data;
 						}
-					}
-				},
-				processing: true,
-				serverSide: true,
-				pageLength: 10,
-				language: this.setLanguageDataTable(),// @ts-ignore
-				footerCallback: async function (row, data, start, end, display) {
-					try {
-						await self.unListen()
-					} catch (e) {
-						//
-					}
-
-					try {
-						self.listen();
-					} catch (e) {
-						//
-					}
-
-					try {
-						self.setTips();
-					} catch (e) {
-						// continue
-					}
-
-					try {// @ts-ignore
-						self.options.handlerFooterCallback();
-					} catch (e) {
-						// continue
-					}
-				},// @ts-ignore
-				"fnInfoCallback": function (oSettings, iStart, iEnd, iMax, iTotal, sPre) {
-					// @ts-ignore
-					self.callbackHeader = oSettings;
-				}
-			};
-			// @ts-ignore
-			if (self.options.dataSrc) {
-				options = {// @ts-ignore
-					...options, ajax: {
+					},
+					processing: true,
+					serverSide: true,
+					pageLength: 10,
+					language: this.setLanguageDataTable(),// @ts-ignore
+					footerCallback: async function (row, data, start, end, display) {
+						try {
+							await self.unListen()
+						} catch (e) {
+							//
+						}
+	
+						try {
+							self.listen();
+						} catch (e) {
+							//
+						}
+	
+						try {
+							self.setTips();
+						} catch (e) {
+							// continue
+						}
+	
+						try {// @ts-ignore
+							self.options.handlerFooterCallback();
+						} catch (e) {
+							// continue
+						}
+					},// @ts-ignore
+					"fnInfoCallback": function (oSettings, iStart, iEnd, iMax, iTotal, sPre) {
 						// @ts-ignore
-						url: self.url, // @ts-ignore
-						dataSrc: self.options.dataSrc,
+						self.callbackHeader = oSettings;
 					}
 				};
-			}
-
-			// @ts-ignore
-			if (self.options.searchBuilder && self.options.searchBuilder.enable) {
-				const searchBuilderOptions:any = {
-					depthLimit: 3,
-					columns: self.options.searchBuilder.columns,
-				};
-
-				if (self.options.searchBuilder.conditions) {
-					searchBuilderOptions.conditions = self.options.searchBuilder.conditions
+				// @ts-ignore
+				if (self.options.dataSrc) {
+					options = {// @ts-ignore
+						...options, ajax: {
+							// @ts-ignore
+							url: self.url, // @ts-ignore
+							dataSrc: self.options.dataSrc,
+						}
+					};
 				}
+	
+				// @ts-ignore
+				if (self.options.searchBuilder && self.options.searchBuilder.enable) {
+					const searchBuilderOptions:any = {
+						depthLimit: 3,
+						columns: self.options.searchBuilder.columns,
+					};
+	
+					if (self.options.searchBuilder.conditions) {
+						searchBuilderOptions.conditions = self.options.searchBuilder.conditions
+					}
+	
+					options = {// @ts-ignore
+						...options, dom: 'Qlfrtip', searchBuilder: searchBuilderOptions
+					};
+				}
+				// @ts-ignore
+				self.optionsDataTable = ref(options);
 
-				options = {// @ts-ignore
-					...options, dom: 'Qlfrtip', searchBuilder: searchBuilderOptions
-				};
+			} catch (error) {
 			}
-			// @ts-ignore
-			self.optionsDataTable = ref(options);
 		},
 		// @ts-ignore
 		setLanguageDataTable() {
@@ -679,23 +699,32 @@ export default {
 			// @ts-ignore
 			if (self.$refs && self.$refs.jovencioDataTable && self.$refs.jovencioDataTable.dt) {
 				// @ts-ignore
-				this.adjustMomentValues(self.$refs.jovencioDataTable.dt.state().searchBuilder);
-				const state = {
+				let state = {
 					// @ts-ignore
-					search: self.$refs.jovencioDataTable.dt.search(),
+					search: self.$refs.jovencioDataTable.dt.search()
+				}
+				// @ts-ignore
+				if (self.$refs.jovencioDataTable && self.$refs.jovencioDataTable.dt && self.$refs.jovencioDataTable.dt.state() && self.$refs.jovencioDataTable.dt.state().searchBuilder) {
 					// @ts-ignore
-					searchBuilder: self.$refs.jovencioDataTable.dt.state().searchBuilder
-				};
+					this.adjustMomentValues(self.$refs.jovencioDataTable.dt.state().searchBuilder);
+					state = {
+						// @ts-ignore
+						search: self.$refs.jovencioDataTable.dt.search(),
+						// @ts-ignore
+						searchBuilder: self.$refs.jovencioDataTable.dt.state().searchBuilder
+					};
+				}
 
 				this.createOptions();
 				// @ts-ignore
 				let options = self.optionsDataTable;
 
-				if (Object.keys(state.searchBuilder).length) {
+				// @ts-ignore
+				if (state.searchBuilder && Object.keys(state.searchBuilder).length) {
 					// @ts-ignore
 					options.searchBuilder = {
 						// @ts-ignore
-						...options.searchBuilder, preDefined: {
+						...options.searchBuilder, preDefined: {// @ts-ignore
 							...state.searchBuilder
 						}
 					};
@@ -801,6 +830,9 @@ export default {
 			} catch (e) {
 				// continue
 			}
+		},
+		generateUniqueId() {
+			return `${Date.now().toString()}.${Math.random().toString(10)}`
 		}
 	},
 };
