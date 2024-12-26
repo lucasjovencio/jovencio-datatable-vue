@@ -247,11 +247,11 @@
     "date": {
         "i18n": {
             "unknown": "?",
-            "hours": "Hora",
-            "minutes": "Minuto",
-            "seconds": "Segundo",
-            "previous": "Anterior",
-            "next": "Próximo",
+            "hours": "Hours",
+            "minutes": "Minutes",
+            "seconds": "Seconds",
+            "previous": "Previous",
+            "next": "Next",
             "months": {
                 "january": "January",
                 "february": "February",
@@ -277,6 +277,6 @@
             }
         },
         "locale": "en-US",
-        "format": "MM/DD/YYYY"
+        "format": "MM/DD/YYYY h:mm A"
     }
 }

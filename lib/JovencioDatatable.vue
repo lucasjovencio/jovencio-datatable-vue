@@ -82,8 +82,8 @@ export default {
 			refreshKey: 1,
 			enableAfterInit: true,
 			localeLocal:'en',
-			formatDateLocal:'MM/DD/YYYY',
-			oldFormatDateLocal:'MM/DD/YYYY',
+			formatDateLocal:'MM/DD/YYYY h:mm A',
+			oldFormatDateLocal:'MM/DD/YYYY h:mm A',
 			oldLocaleLocal:'en',
 			updateLocal: null,
 			fullImport:loadingFinishImports,
@@ -239,7 +239,11 @@ export default {
 					// @ts-ignore
 					ajax: {
 						// @ts-ignore
-						url: self.url
+						url: self.url,
+						"data": function(d:any) {
+							d.format_date_locale = self.formatDateLocal;
+							d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+						}
 					},
 					suppressWarnings: true,
 					responsive: {
@@ -318,6 +322,10 @@ export default {
 							// @ts-ignore
 							url: self.url, // @ts-ignore
 							dataSrc: self.options.dataSrc,
+							"data": function(d:any) {
+								d.format_date_locale = self.formatDateLocal;
+								d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+							}
 						}
 					};
 				}
