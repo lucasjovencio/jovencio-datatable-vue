@@ -836,8 +836,16 @@ export default {
 			try {// @ts-ignore
 				setTimeout(() => {
 					// @ts-ignore
-					useTippy('.tippys-load', {
-						content: reference => reference.getAttribute('data-tippy')
+					document.querySelectorAll('.tippys-load').forEach(reference => {
+						// @ts-ignore
+						const tippyValue = reference.getAttribute('data-tippy');
+						// @ts-ignore
+						if (tippyValue !== null && tippyValue.trim() !== '') {
+							// @ts-ignore
+							useTippy(reference, {
+								content: tippyValue
+							});
+						}
 					});
 				}, 100);
 			} catch (e) {
