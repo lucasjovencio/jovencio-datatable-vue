@@ -20,6 +20,12 @@ export default defineConfig({
       }
     }),
   ],
+  server: {
+    watch: {
+      usePolling: true,
+    },
+    strictPort: true,
+  },
   build: {
     minify: 'esbuild',
     reportCompressedSize: true,
