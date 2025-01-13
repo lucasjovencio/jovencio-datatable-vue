@@ -1,12 +1,14 @@
 import JovencioClousure from "./JovencioClousure";
 import JovencioDataTableMeta from "./JovencioDataTableMeta";
+import MaskaDatatable from "./MaskaDatatable";
 type Types = 'string' | 'num' | 'moment';
 
 export default interface JovencioDataTableColumn {
     id: string,
-    name: string,
+    name: string | (() => string),
     orderable: boolean,
     searchable: boolean,
+    mask: MaskaDatatable,
     type?: Types,
     class?: string,
     colspan?: Number,

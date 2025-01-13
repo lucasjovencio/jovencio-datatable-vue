@@ -130,10 +130,18 @@ export default {
 					// continue
 				}
 
+				let name = null;
+				try {
+					// @ts-ignore
+					name = row.name();
+				} catch (e) {
+					name = row.name
+				}
+
 				return {
 					'data': row.id,
 					// @ts-ignore
-					'title': row.name,
+					'title': name,
 					'className': row.class,
 					'render': render,
 					'type': row.type ?? 'string',
@@ -821,6 +829,32 @@ export default {
 			if (!addAction) return;
 			// @ts-ignore
 			const self = this;
+			// @ts-ignore
+			function setMask(parent, key) {
+				const maskConfig = Object.fromEntries(// @ts-ignore
+					Object.entries(self.columns[key].mask).filter(([key, value]) => value !== null)
+				);
+				const inputValue = parent.querySelector('.dtsb-value');
+				try {
+					let locale = String(self.localeLocal);
+					if (locale.toLowerCase() == 'br' || locale.toLowerCase() == 'pt' || locale.toLowerCase() == 'pt-br') {
+						locale = 'pt-BR';
+					}
+
+					// @ts-ignore
+					if (maskConfig.i18n !== undefined && maskConfig.i18n[locale] !== undefined) {
+						const configI18n = Object.fromEntries(// @ts-ignore
+							Object.entries(maskConfig.i18n[locale]).filter(([key, value]) => value !== null)
+						);
+						new MaskInput(inputValue, configI18n);
+					} else {
+						new MaskInput(inputValue, maskConfig);
+					}
+				} catch (e) {
+					// console.error(e)
+				}
+			}
+
 			function loadDtsbData() {
 				const inputs = document.querySelectorAll('.dtsb-data');
 				// @ts-ignore
@@ -831,20 +865,11 @@ export default {
 					input.onchange = function(e) {
 						// @ts-ignore
 						if (self.columns[key] && self.columns[key].type === 'num' && self.columns[key].mask !== undefined) {
-
 							const parent = e.parentNode; 
 							const condition = parent.querySelector('.dtsb-condition');
 							// @ts-ignore
 							condition.onchange = function(condE) {
-								const maskConfig = Object.fromEntries(// @ts-ignore
-									Object.entries(self.columns[key].mask).filter(([key, value]) => value !== null)
-								);
-								const inputValue = parent.querySelector('.dtsb-value');
-								try {
-									new MaskInput(inputValue, maskConfig);
-								} catch (e) {
-									console.error(e)
-								}
+								setMask(parent, key);
 							}
 						}
 					};
@@ -854,15 +879,7 @@ export default {
 						const parent = input.parentNode; 
 						const condition = parent.querySelector('.dtsb-condition');
 						if (condition.value != '') {
-							const maskConfig = Object.fromEntries(// @ts-ignore
-								Object.entries(self.columns[key].mask).filter(([key, value]) => value !== null)
-							);
-							const inputValue = parent.querySelector('.dtsb-value');
-							try {
-								new MaskInput(inputValue, maskConfig);
-							} catch (e) {
-								console.error(e)
-							}
+							setMask(parent, key);
 						}
 					}
 				}
