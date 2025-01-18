@@ -61,7 +61,7 @@ export default {
                                     let indexArray = that.s.dt.rows().indexes().toArray();
                                     let added = [];
 
-                                    let el = window.jQuery('<select class="form-control" style="width: 300px"></select>');
+                                    let el = window.jQuery('<select class="dtsb-value dtsb-dropDown dtsb-select" style="width: 300px"></select>');
                                     window.jQuery(el).append('<option value="">Selecione um valor</option>');
 
                                     for (let index of indexArray) {
@@ -401,7 +401,7 @@ export default {
                     });
 
                     addClousure({
-                        'selector': '.load-listen-datatable-clousure-body',
+                        'selector': '.load-locks-datatable-clousure-body',
                         'trigger': 'listen',
                         'triggerSignature': 'triggerListen',
                         'enable': true,
