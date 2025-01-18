@@ -23,7 +23,7 @@ npm i jovencio-datatable-vue
 ```
 
 ## Usage/Examples
-- [Preview](https://github.com/lucasjovencio/jovencio-datatable/blob/main/tests/Unit/DataTableQueryFactoryBuildTest.php)
+- [Preview](https://codesandbox.io/p/devbox/35y7kg)
 
 ```js
 
@@ -748,7 +748,7 @@ npm i jovencio-datatable-vue
 ```
 
 ## Usage/Examples
-- [Preview](https://github.com/lucasjovencio/jovencio-datatable/blob/main/tests/Unit/DataTableQueryFactoryBuildTest.php)
+- [Preview](https://codesandbox.io/p/devbox/35y7kg)
 
 
 ```js
