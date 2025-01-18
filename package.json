@@ -3,6 +3,7 @@
   "private": false,
   "version": "1.2.1",
   "type": "module",
+  "license": "MIT",
   "files": [
     "dist"
   ],
