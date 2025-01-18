@@ -1,6 +1,6 @@
 <template>
 	<div v-if="dataReady">
-		<DataTable :id="datatableId" v-show="enableAfterInit" ref="jovencioDataTable" :key="refreshKey" :options="optionsDataTable" :columns="columnsDataTable"
+		<DataTable :key="datatableId" v-show="enableAfterInit" ref="jovencioDataTable" :options="optionsDataTable" :columns="columnsDataTable"
 			:class="classTable" />
 	</div>
 </template>
@@ -173,7 +173,7 @@ export default {
 					// @ts-ignore
 					page--;
 					// @ts-ignore
-					self.updateDataTable(`${Date.now()}.${Math.random()}`, page);
+					self.updateDataTable(page);
 				} else {
 					// @ts-ignore
 					self.$refs.jovencioDataTable.dt.ajax.reload(null, reload)
@@ -184,6 +184,11 @@ export default {
 			// @ts-ignore
 			if (this.dataReady && newVal && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
 				this.oldLocaleLocal = this.localeLocal;
+				// @ts-ignore
+				if (['br', "pt-BR", "pt-br"].includes(newVal)) {
+					// @ts-ignore
+					newVal = "pt-BR";
+				}
 				// @ts-ignore
 				this.localeLocal = newVal;
 				// @ts-ignore
@@ -722,7 +727,7 @@ export default {
 			}
 			return obj;
 		},
-		updateDataTable(key:any, page:any) {
+		updateDataTable(page:any) {
 			const self = this;
 			// @ts-ignore
 			if (self.$refs && self.$refs.jovencioDataTable && self.$refs.jovencioDataTable.dt) {
@@ -784,8 +789,7 @@ export default {
 				};
 				// @ts-ignore
 				this.optionsDataTable = options;
-				// @ts-ignore
-				this.refreshKey = key
+				this.datatableId = this.generateUniqueId();
 			}
 		},
 		async unListen() {
@@ -905,7 +909,7 @@ export default {
 				// @ts-ignore
 				const page = this.$refs.jovencioDataTable.dt.page();
 				this.setLanguageDate()
-				this.updateDataTable(Math.random(), page);
+				this.updateDataTable(page);
 			} catch (e) {
 				// continue
 			}
