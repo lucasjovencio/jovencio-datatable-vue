@@ -144,7 +144,9 @@ export default {
 					'title': name,
 					'type': row.type ?? 'string',
 					'sType': row.type ?? 'string',
-					"searchBuilderType": row.type ?? 'string'
+					"searchBuilderType": row.type ?? 'string',
+					'orderable': false,
+					'searchable': false
 				}
 			});
 			self.dataSearch.push(body)
@@ -245,12 +247,18 @@ export default {
 		createOptions() {
 			try {
 				const self = this;
-				console.log(self.dataSearch)
 				let options = {
 					// @ts-ignore
 					dom: 'Q',
 					// @ts-ignore
 					ajax: function (data, callback, settings) {
+						if (data.searchBuilder) {
+							self.$emit('search', {
+								searchBuilder: data.searchBuilder,
+								format_date_locale: self.formatDateLocal,
+								timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
+							});
+						}
 						const fakeResponse = {
 							data: self.dataSearch
 						};
