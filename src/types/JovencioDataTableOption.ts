@@ -1,6 +1,6 @@
 
 export default interface JovencioDataTableOption {
-    url: string,
+    url?: string,
     /**
      *  dataSrc was used to create a test environment during development. 
      *  Please return a dataset in the format expected by the datatable

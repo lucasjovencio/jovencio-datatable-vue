@@ -1,49 +1,59 @@
 <template>
 	<div v-if="dataReady">
-		<DataTable :key="datatableId" v-show="enableAfterInit" ref="jovencioDataTableRef" :options="optionsDataTable"
-			:columns="columnsDataTable" :class="classTable" />
+		<DataTable :key="datatableId" v-show="enableAfterInit" ref="JovencioRefSearchDatatable" :options="optionsDataTable"
+			:columns="columnsDataTable" :data="dataSearch" :class="classTable" />
 	</div>
 </template>
 
 <script lang="ts">
-const loadingFinishImports = ref(false)
+
+declare global {
+	interface Window {
+		searchbuilderDT?: any;
+		DateTimeDT: any
+	}
+}
+
+const loadingFinishImportsSearch = ref(false)
+loadingFinishImportsSearch.value = false
+const SearchBuilderModule = ref(false)
+const SearchBuilderDateModule = ref(false)
 // @ts-ignore
 import $ from 'jquery';
-// @ts-ignore
 import DataTable from "datatables.net-vue3"
-// @ts-ignore
 import DataTablesCore from "datatables.net"
 // @ts-ignore
-import type JovencioDataTableColumn from "../src/types/JovencioDataTableColumn"
-// @ts-ignore
 import { ref } from 'vue';
-// @ts-ignore
-import useTippy from 'tippy.js';
-// @ts-ignore
 import { createI18n } from 'vue-i18n';
 import br from "../src/locales/pt-br.json";
 import en from "../src/locales/en.json";
 import JovencioActionClousure from '../src/types/JovencioActionClousure';
 import { JovencioDataTableOption } from './main';
-import { JovencioDatatableCommon } from './main';
-import JovencioProviderClousure from '../src/types/JovencioProviderClousure';
-// @ts-ignore
 import moment from 'moment';
-// @ts-ignore
-import { MaskInput } from 'maska';
 
 // @ts-ignore
 if (!window.jQuery) window.jQuery = $;
 
 (async () => {
-	// @ts-ignore
 	await import('datatables.net-datetime');
-	// @ts-ignore
-	await import('datatables.net-searchbuilder-dt');
-	// @ts-ignore
+	import('datatables.net-searchbuilder-dt');
+	const sb = await import('datatables.net-searchbuilder-dt');
+	const dt = await import('datatables.net-datetime');
 	await import('datatables.net-responsive-dt');
-	loadingFinishImports.value = true;
+	loadingFinishImportsSearch.value = true;
+	if (!window.searchbuilderDT) window.searchbuilderDT = sb;
+	if (!window.DateTimeDT) window.DateTimeDT = dt;
+	// @ts-ignore
+	SearchBuilderModule.value = sb;
+	// @ts-ignore
+	SearchBuilderDateModule.value = dt;
+	const DateTime = dt.DateTime || dt.default || dt;
+	window.searchbuilderDT = {
+		...sb,
+		DateTime
+	};
 })();
+
 
 // @ts-ignore
 if (!window.moment) window.moment = moment;
@@ -56,7 +66,7 @@ const i18n = createI18n({
 
 DataTable.use(DataTablesCore)
 export default {
-	name: 'JovencioDatatable',
+	name: 'JovencioSearchDatatable',
 	components: {
 		DataTable
 	},
@@ -64,6 +74,11 @@ export default {
 		columns: {
 			type: Array,
 			required: true,
+		},
+		update: {
+			type: String,
+			required: false,
+			default: '',
 		},
 		depthSearch: {
 			type: Number,
@@ -76,7 +91,7 @@ export default {
 		},
 		locale: {
 			type: String,
-			default: 'en',
+			default: 'br',
 			required: false,
 			validator: function (value: string) {
 				return ['en', 'br', "pt-BR", "pt-br"].includes(value);
@@ -97,50 +112,24 @@ export default {
 			oldFormatDateLocal: 'MM/DD/YYYY h:mm A',
 			oldLocaleLocal: 'en',
 			updateLocal: null,
-			fullImport: loadingFinishImports,
-			datatableId: null as any
+			fullImport: loadingFinishImportsSearch,
+			SearchBuilderModuleNT: SearchBuilderModule,
+			datatableId: '1' as any,
+			dataSearch: [] as any,
 		};
 	},
 	computed: {
 		classTable(): String {
-			// @ts-ignore
-			if (this.options && this.options.classTable) {
-				// @ts-ignore
-				return this.options.classTable
-			}
-			return "min-w-full leading-normal"
+			return "search-builder-jovencio"
 		},
 		// @ts-ignore
 		columnsDataTable(): Array {
 			const self = this;
 			// @ts-ignore
-			self.unListen();
 			// @ts-ignore
-			self.clousures = [] as JovencioActionClousure[];// @ts-ignore
+			const body = {} as any;
 
-			const addClousure = function (provider: JovencioProviderClousure) {
-				// @ts-ignore
-				const data = JovencioDatatableCommon.providerClousureDT(provider) as JovencioActionClousure[]
-				// @ts-ignore
-				self.clousures.push(...data)
-			}
-			// @ts-ignore
-			return self.columns.map((row: JovencioDataTableColumn) => {
-				try {
-					// @ts-ignore
-					row.triggers(addClousure);
-				} catch (e) {
-					// continue
-				}
-
-				let render = null;
-				try {
-					// @ts-ignore
-					render = row.render;
-				} catch (e) {
-					// continue
-				}
-
+			const columns = self.columns.map((row: any) => {
 				let name = null;
 				try {
 					// @ts-ignore
@@ -148,57 +137,28 @@ export default {
 				} catch (e) {
 					name = row.name
 				}
-
+				body[row.id] = name;
 				return {
 					'data': row.id,
 					// @ts-ignore
 					'title': name,
-					'className': row.class,
-					'render': render,
 					'type': row.type ?? 'string',
 					'sType': row.type ?? 'string',
 					"searchBuilderType": row.type ?? 'string',
-					'orderable': row.orderable,
-					'searchable': row.searchable
+					'orderable': false,
+					'searchable': false
 				}
-			})
+			});
+			self.dataSearch.push(body)
+			return columns;
 		}
 	},
 	watch: {
-		// @ts-ignore
-		update(newVal: any, oldVal: any) {
-			const self = this;
-			newVal = String(newVal);
-			let reload = false;
-			// @ts-ignore
-			if (self.dataReady && self.callbackHeader && newVal != "" && newVal !== self.updateLocal) {
-				// @ts-ignore
-				self.updateLocal = newVal;
-				// @ts-ignore
-				if (newVal.includes('remove')) {// @ts-ignore
-					reload = (self.callbackHeader.aoData.length <= 1) ? true : false;
-				}// @ts-ignore
-
-				let page = self.$refs.jovencioDataTableRef.dt.page();
-
-				if (reload && page > 1) {
-					// @ts-ignore
-					page--;
-					// @ts-ignore
-					self.updateDataTable(page);
-				} else {
-					// @ts-ignore
-					self.$refs.jovencioDataTableRef.dt.ajax.reload(null, reload)
-				}
-			}
-		},
 		locale(newVal: string, oldVal: string) {
 			// @ts-ignore
 			const finishLoad = ref(false);
 			do {
-				// @ts-ignore
-				if (this.dataReady && newVal && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
-					// @ts-ignore
+				if (this.dataReady && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
 					this.oldLocaleLocal = this.localeLocal;
 					// @ts-ignore
 					if (['br', "pt-BR", "pt-br"].includes(newVal)) {
@@ -209,10 +169,18 @@ export default {
 					this.localeLocal = newVal;
 					// @ts-ignore
 					this.changeLocale(newVal);
+	
+					// @ts-ignore
+					const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
+					window.searchbuilderDT = {
+						// @ts-ignore
+						...SearchBuilderModule.value,
+						DateTime
+					};
 
 					finishLoad.value = true;
 				}
-			} while (!finishLoad.value && !loadingFinishImports.value);
+			} while (!finishLoad.value && !SearchBuilderDateModule.value);
 		},
 		fullImport(newVal: any, oldVal: any) {
 			if (newVal) {
@@ -225,23 +193,18 @@ export default {
 
 	},
 	mounted() {
-		const self = this;
-
-		if (loadingFinishImports.value) {
-			self.setConfigLocale();
+		if (loadingFinishImportsSearch.value) {
+			this.setConfigLocale();
 		}
-		// @ts-ignore
-		self.url = self.options.url;
-		// @ts-ignore
-		self.createOptions();
-		setTimeout(() => {
-			if (self.dataReady && self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt &&
-				self.locale !== self.localeLocal
-			) {
-				self.changeLocale(self.locale)
-			}
-		}, 300);
 
+		// @ts-ignore
+		this.createOptions();
+
+		setTimeout(() => {
+			if (this.locale !== this.localeLocal) {
+				this.changeLocale(this.locale)
+			}
+		}, 300)
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -269,130 +232,70 @@ export default {
 			this.setLanguageDate();
 
 			// @ts-ignore
+			const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
+			window.searchbuilderDT = {
+				// @ts-ignore
+				...SearchBuilderModule.value,
+				DateTime
+			};
+			
+			// @ts-ignore
 			this.datatableId = this.generateUniqueId();
-
 			// @ts-ignore
 			this.dataReady = true;
 		},
 		createOptions() {
 			try {
 				const self = this;
-
 				let options = {
 					// @ts-ignore
-					ajax: {
-						// @ts-ignore
-						url: self.url,
-						"data": function (d: any) {
-							// @ts-ignore
-							d.format_date_locale = self.formatDateLocal;
-							d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+					dom: 'Q',
+					// @ts-ignore
+					ajax: function (data, callback, settings) {
+						if (data.searchBuilder) {
+							self.$emit('search', {
+								searchBuilder: data.searchBuilder,
+								format_date_locale: self.formatDateLocal,
+								timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
+							});
 						}
+						const fakeResponse = {
+							data: self.dataSearch
+						};
+						callback(fakeResponse);
 					},
 					suppressWarnings: true,
-					responsive: {
-						details: {
-							// @ts-ignore
-							renderer: function (api, rowIdx, columns) {
-								let data = '';
-								for (const key in columns) {
-									const column = columns[key]
-									data += `<div class="mb-2 flex flex-row items-center"> <span class="mr-1">${column.title}:</span> ${column.data} </div>`;
-								}
-								const expressaoRegular = new RegExp("\\action-fulltable\\b", "gi");
-								data = data.replace(expressaoRegular, 'action-responsive-table');
-
-								setTimeout(async () => {
-									try {
-										await self.unListen()
-									} catch (e) {
-										//
-									}
-
-									try {
-										self.listen();
-									} catch (e) {
-										//
-									}
-
-									try {// @ts-ignore
-										self.options.handlerFooterCallback();
-									} catch (e) {
-										// continue
-									}
-								}, 500)
-								return data;
-							}
-						}
-					},
-					processing: true,
 					serverSide: true,
+					processing: true,
 					pageLength: 10,
 					language: this.setLanguageDataTable(),// @ts-ignore
 					footerCallback: async function (row, data, start, end, display) {
-						try {
-							await self.unListen()
-						} catch (e) {
-							//
-						}
-
-						try {
-							self.listen();
-						} catch (e) {
-							//
-						}
-
-						try {
-							self.setTips();
-						} catch (e) {
-							// continue
-						}
-
 						try {// @ts-ignore
 							self.options.handlerFooterCallback();
 						} catch (e) {
 							// continue
 						}
 
-						try {
-							self.listenMask();
-						} catch (e) {
-							// continue
-						}
 					},// @ts-ignore
 					"fnInfoCallback": function (oSettings, iStart, iEnd, iMax, iTotal, sPre) {
 						// @ts-ignore
 						self.callbackHeader = oSettings;
 					}
 				};
-				// @ts-ignore
-				if (self.options.dataSrc) {
-					options = {// @ts-ignore
-						...options, ajax: {
-							// @ts-ignore
-							url: self.url, // @ts-ignore
-							dataSrc: self.options.dataSrc,
-							"data": function (d: any) {// @ts-ignore
-								d.format_date_locale = self.formatDateLocal;
-								d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
-							}
-						}
-					};
-				}
 
 				// @ts-ignore
 				if (self.options.searchBuilder && self.options.searchBuilder.enable) {
 					const searchBuilderOptions: any = {
-						depthLimit: self.depthSearch, // @ts-ignore
+						depthLimit: self.depthSearch,
 						columns: self.options.searchBuilder.columns,
 					};
-					// @ts-ignore
-					if (self.options.searchBuilder.conditions) {// @ts-ignore
+
+					if (self.options.searchBuilder.conditions) {
 						searchBuilderOptions.conditions = self.options.searchBuilder.conditions
 					}
 
 					options = {// @ts-ignore
-						...options, dom: 'Qlfrtip', searchBuilder: searchBuilderOptions
+						...options, dom: 'Q', searchBuilder: searchBuilderOptions
 					};
 				}
 				// @ts-ignore
@@ -757,24 +660,24 @@ export default {
 			}
 			return obj;
 		},
-		updateDataTable(page: any) {
+		updateDataTable() {
 			const self = this;
 			// @ts-ignore
-			if (self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt) {
+			if (self.$refs && self.$refs.JovencioRefSearchDatatable && self.$refs.JovencioRefSearchDatatable.dt) {
 				// @ts-ignore
 				let state = {
 					// @ts-ignore
-					search: self.$refs.jovencioDataTableRef.dt.search()
+					search: self.$refs.JovencioRefSearchDatatable.dt.search()
 				}
 				// @ts-ignore
-				if (self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt && self.$refs.jovencioDataTableRef.dt.state() && self.$refs.jovencioDataTableRef.dt.state().searchBuilder) {
+				if (self.$refs.JovencioRefSearchDatatable && self.$refs.JovencioRefSearchDatatable.dt && self.$refs.JovencioRefSearchDatatable.dt.state() && self.$refs.JovencioRefSearchDatatable.dt.state().searchBuilder) {
 					// @ts-ignore
-					this.adjustMomentValues(self.$refs.jovencioDataTableRef.dt.state().searchBuilder);
+					this.adjustMomentValues(self.$refs.JovencioRefSearchDatatable.dt.state().searchBuilder);
 					state = {
 						// @ts-ignore
-						search: self.$refs.jovencioDataTableRef.dt.search(),
+						search: self.$refs.JovencioRefSearchDatatable.dt.search(),
 						// @ts-ignore
-						searchBuilder: self.$refs.jovencioDataTableRef.dt.state().searchBuilder
+						searchBuilder: self.$refs.JovencioRefSearchDatatable.dt.state().searchBuilder
 					};
 				}
 
@@ -804,128 +707,12 @@ export default {
 					};
 				}
 
-				// @ts-ignore
-				options.initComplete = function (settings, json) {
-					if (page) {
-						// @ts-ignore
-						self.enableAfterInit = false;
-						setTimeout(() => {
-							// @ts-ignore
-							self.enableAfterInit = true;
-						}, 500);
-						// @ts-ignore
-						settings.oInstance.api().page(page).draw(false);
-					}
-				};
+				
 				// @ts-ignore
 				this.optionsDataTable = options;
 				// @ts-ignore
 				this.datatableId = this.generateUniqueId();
 			}
-		},
-		async unListen() {
-			const self = this;// @ts-ignore
-
-			for (let key in self.clousures) {// @ts-ignore
-				const clousure = self.clousures[key];// @ts-ignore
-
-				const locks = document.querySelectorAll(clousure.selector);
-				locks.forEach((elemento: any) => {
-					const clone = elemento.cloneNode(true);
-					elemento.parentNode.replaceChild(clone, elemento);
-				});
-				// @ts-ignore
-				if (clousure.timeout) {// @ts-ignore
-					clearTimeout(clousure.timeout)// @ts-ignore
-					self.clousures[key].timeout = null;
-				}
-
-			}
-		},
-		async listen() {
-			const self = this;// @ts-ignore
-			for (let key in self.clousures) {// @ts-ignore
-				const clousure = self.clousures[key];// @ts-ignore
-				if (clousure.timeout) {// @ts-ignore
-					clearTimeout(clousure.timeout)
-				}
-				// @ts-ignore
-				if (clousure.enable) {
-					const time = setTimeout(() => {// @ts-ignore
-						self.clousures[key].clousure(self);
-					}, 100);
-					// @ts-ignore
-					self.clousures[key].timeout = time;
-				}
-			}
-		},
-		async listenMask() {
-			const addAction = document.querySelector('.dtsb-add')
-			if (!addAction) return;
-			// @ts-ignore
-			const self = this;
-			// @ts-ignore
-			function setMask(parent, key) {
-				const maskConfig = Object.fromEntries(// @ts-ignore
-					Object.entries(self.columns[key].mask).filter(([key, value]) => value !== null)
-				);
-				const inputValue = parent.querySelector('.dtsb-value');
-				try {
-					// @ts-ignore
-					let locale = String(self.localeLocal);
-					if (locale.toLowerCase() == 'br' || locale.toLowerCase() == 'pt' || locale.toLowerCase() == 'pt-br') {
-						locale = 'pt-BR';
-					}
-
-					// @ts-ignore
-					if (maskConfig.i18n !== undefined && maskConfig.i18n[locale] !== undefined) {
-						const configI18n = Object.fromEntries(// @ts-ignore
-							Object.entries(maskConfig.i18n[locale]).filter(([key, value]) => value !== null)
-						);
-						new MaskInput(inputValue, configI18n);
-					} else {
-						new MaskInput(inputValue, maskConfig);
-					}
-				} catch (e) {
-					// console.error(e)
-				}
-			}
-
-			function loadDtsbData() {
-				const inputs = document.querySelectorAll('.dtsb-data');
-				// @ts-ignore
-				for (const input of inputs) {
-					// @ts-ignore
-					const key = input.value;
-					// @ts-ignore
-					input.onchange = function (e) {
-						// @ts-ignore
-						if (self.columns[key] && self.columns[key].type === 'num' && self.columns[key].mask !== undefined) {
-							const parent = e.parentNode;
-							const condition = parent.querySelector('.dtsb-condition');
-							// @ts-ignore
-							condition.onchange = function (condE) {
-								setMask(parent, key);
-							}
-						}
-					};
-
-					// @ts-ignore
-					if (self.columns[key] && self.columns[key].type === 'num' && self.columns[key].mask !== undefined) {
-						const parent = input.parentNode;
-						const condition = parent.querySelector('.dtsb-condition');
-						if (condition.value != '') {
-							setMask(parent, key);
-						}
-					}
-				}
-			}
-
-			// @ts-ignore
-			addAction.onclick = function () {
-				loadDtsbData()
-			};
-			loadDtsbData()
 		},
 		changeLocale(locale: string) {
 			try {
@@ -938,30 +725,9 @@ export default {
 				// @ts-ignore
 				this.formatDateLocal = i18n.global.t("date.format")
 
-				// @ts-ignore
-				const page = this.$refs.jovencioDataTableRef.dt.page();
+				// @ts-ignore	
 				this.setLanguageDate()
-				this.updateDataTable(page);
-			} catch (e) {
-				// continue
-			}
-		},
-		setTips() {
-			try {// @ts-ignore
-				setTimeout(() => {
-					// @ts-ignore
-					document.querySelectorAll('.tippys-load').forEach(reference => {
-						// @ts-ignore
-						const tippyValue = reference.getAttribute('data-tippy');
-						// @ts-ignore
-						if (tippyValue !== null && tippyValue.trim() !== '') {
-							// @ts-ignore
-							useTippy(reference, {
-								content: tippyValue
-							});
-						}
-					});
-				}, 100);
+				this.updateDataTable();
 			} catch (e) {
 				// continue
 			}
@@ -1006,5 +772,9 @@ div.dt-container .dt-paging {
 
 .opacity-50 {
 	opacity: 0.5;
+}
+
+.search-builder-jovencio {
+	display: none;
 }
 </style>

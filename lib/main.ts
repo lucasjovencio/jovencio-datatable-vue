@@ -1,4 +1,5 @@
 import JovencioDatatable from './JovencioDatatable.vue'
+import JovencioSearchDatatable from './JovencioSearchDatatable.vue'
 import JovencioDatatableCommon from '../src/services/JovencioDatatableCommon';
 
 import JovencioDataTableMeta from '../src/types/JovencioDataTableMeta';
@@ -11,5 +12,5 @@ import JovencioButtonProvider from '../src/types/JovencioButtonProvider';
 import MaskaDatatable from '../src/types/MaskaDatatable';
 
 
-export { JovencioDatatable, JovencioDatatableCommon };
+export { JovencioDatatable, JovencioSearchDatatable, JovencioDatatableCommon };
 export type { JovencioDataTableMeta, JovencioDataTableColumn, JovencioButtonProvider, JovencioButtonGenerate, JovencioClousure, JovencioTrigger, JovencioDataTableOption, MaskaDatatable};

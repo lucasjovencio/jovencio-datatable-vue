@@ -1,23 +1,57 @@
 <template>
-    <div class="bg-white">
-        <button class="button  inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm" style="margin-right: 5px;" @click="setLanguage('en')">EN</button>
-        <button class="button inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm" @click="setLanguage('pt-BR')">pt-BR</button>
-        <JovencioDatatable :locale="locale" :columns="tableColumns" :update="updateAjax" :options="optionsDataTable" @trigger="listenTrigger" @listen="listenTrigger2" />
+    <button style="margin-right: 5px;" @click="showDataTable = true; showDataTableSearch = false">Show Table</button>
+    <button @click="showDataTable = false; showDataTableSearch = true">Show Search</button>
+    <div v-if="showDataTable"
+        class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Jovencio DataTable Vue Example</h1>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">This is a simple example of using Jovencio DataTable in a Vue
+            application.</p>
+        <div class="bg-white">
+            <button
+                class="button  inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
+                style="margin-right: 5px;" @click="setLanguage('en')">EN</button>
+            <button
+                class="button inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
+                @click="setLanguage('br')">pt-BR</button>
+            <JovencioDatatable :locale="locale" :columns="tableColumns" :update="updateAjax" :options="optionsDataTable" @trigger="listenTrigger" @listen="listenTrigger2" />
+        </div>
     </div>
+    <div v-if="showDataTableSearch"
+        class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Search Jovencio DataTable Vue Example</h1>
+        <p class="text-gray-700 dark:text-gray-300 mb-6">This is a simple example of using Jovencio Search DataTable in
+            a Vue application.</p>
+
+        <div class="bg-white">
+            <button
+                class="button  inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
+                style="margin-right: 5px;" @click="setLanguage('en')">EN</button>
+            <button
+                class="button inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
+                @click="setLanguage('br')">pt-BR</button>
+            <JovencioSearchDatatable :locale="locale" :columns="tableSearchColumns"
+                :options="optionsDataTableSearch" @search="listenTrigger3" />
+        </div>
+    </div>
+
+
 </template>
 
 
 <script lang="ts">
 
-import  {JovencioDatatable, JovencioDatatableCommon}  from '../lib/main';
-import type {JovencioDataTableColumn, JovencioButtonGenerate, JovencioDataTableMeta, JovencioButtonProvider, JovencioClousure, JovencioTrigger, JovencioDataTableOption, MaskaDatatable}  from 'jovencio-datatable-vue';
+import { JovencioDatatableCommon, JovencioSearchDatatable, JovencioDatatable } from '../lib/main';
+import type { JovencioDataTableColumn, JovencioButtonGenerate, JovencioDataTableMeta, JovencioButtonProvider, JovencioClousure, JovencioTrigger, JovencioDataTableOption, MaskaDatatable } from 'jovencio-datatable-vue';
 import 'jovencio-datatable-vue/dist/style.css';
 
 export default {
     data() {
         return {
             tableColumns: [] as JovencioDataTableColumn[],
-			showDataTable:false,
+            tableSearchColumns: [] as JovencioDataTableColumn[],
+
+            showDataTable: true,
+            showDataTableSearch: false,
             optionsDataTable: {
                 url: "https://jsonplaceholder.typicode.com/posts",
                 /**
@@ -37,7 +71,7 @@ export default {
                         monetization: Math.floor(Math.random() * (9999 - 10 + 1)) + 10,
                     }));
                 },
-               
+
                 searchBuilder: {
                     enable: true,
                     columns: [0, 1, 2, 3, 4, 5],
@@ -48,11 +82,11 @@ export default {
                                 isInputValid: function (el) {
                                     return window.jQuery(el[0]).find('option:selected').length > 0;
                                 },
-                                conditionName: function(dt) {
+                                conditionName: function (dt) {
                                     return dt.settings()[0].oLanguage.searchBuilder.conditions.string.equals;
                                 },
                                 inputValue: function (el) {
-                                    return window.jQuery(el[0]).find('option:selected').map(function() {
+                                    return window.jQuery(el[0]).find('option:selected').map(function () {
                                         return window.jQuery(this).val();
                                     }).get();
                                 },
@@ -97,17 +131,124 @@ export default {
                                     return value === comparison[0];
                                 }
                             }
+                        },
+                        "string-example": {
+                            contains: {
+                                conditionName: 'Contém',
+                                init: function (that, fn, preDefined) {
+                                    const input = window.jQuery('<input type="text">')
+                                        .val(preDefined || '')
+                                        .on('input', () => fn(input.val()));
+                                    return input;
+                                },
+                                inputValue: el => el.val(),
+                                isInputValid: el => el.val().length > 0,
+                                search: (value, input) => value.toLowerCase().includes(input.toLowerCase())
+                            },
+                            equals: {
+                                conditionName: 'Igual',
+                                init: function (that, fn, preDefined) {
+                                    const input = window.jQuery('<input type="text">')
+                                        .val(preDefined || '')
+                                        .on('input', () => fn(input.val()));
+                                    return input;
+                                },
+                                inputValue: el => el.val(),
+                                isInputValid: el => el.val().length > 0,
+                                search: (value, input) => value.toLowerCase() === input.toLowerCase()
+                            },
+                            startsWith: {
+                                conditionName: 'Começa com',
+                                init: function (that, fn, preDefined) {
+                                    const input = window.jQuery('<input type="text">')
+                                        .val(preDefined || '')
+                                        .on('input', () => fn(input.val()));
+                                    return input;
+                                },
+                                inputValue: el => el.val(),
+                                isInputValid: el => el.val().length > 0,
+                                search: (value, input) => value.toLowerCase().startsWith(input.toLowerCase())
+                            },
+                            endsWith: {
+                                conditionName: 'Termina com',
+                                init: function (that, fn, preDefined) {
+                                    const input = window.jQuery('<input type="text">')
+                                        .val(preDefined || '')
+                                        .on('input', () => fn(input.val()));
+                                    return input;
+                                },
+                                inputValue: el => el.val(),
+                                isInputValid: el => el.val().length > 0,
+                                search: (value, input) => value.toLowerCase().endsWith(input.toLowerCase())
+                            },
+                            dateEquals: {
+                                conditionName: 'Data igual',
+                                init: function (that, fn, preDefined) {
+                                    const input = window.jQuery('<input type="date">')
+                                        .val(preDefined || '')
+                                        .on('change', () => fn(input.val()));
+                                    return input;
+                                },
+                                inputValue: el => el.val(),
+                                isInputValid: el => el.val(),
+                                search: (value, input) => moment(value, 'DD/MM/YYYY').isSame(input, 'day')
+                            },
+                            dateBefore: {
+                                conditionName: 'Data antes de',
+                                init: function (that, fn, preDefined) {
+                                    const input = window.jQuery('<input type="date">')
+                                        .val(preDefined || '')
+                                        .on('change', () => fn(input.val()));
+                                    return input;
+                                },
+                                inputValue: el => el.val(),
+                                isInputValid: el => el.val(),
+                                search: (value, input) => moment(value, 'DD/MM/YYYY').isBefore(input, 'day')
+                            },
+                            dateAfter: {
+                                conditionName: 'Data depois de',
+                                init: function (that, fn, preDefined) {
+                                    const input = window.jQuery('<input type="date">')
+                                        .val(preDefined || '')
+                                        .on('change', () => fn(input.val()));
+                                    return input;
+                                },
+                                inputValue: el => el.val(),
+                                isInputValid: el => el.val(),
+                                search: (value, input) => moment(value, 'DD/MM/YYYY').isAfter(input, 'day')
+                            },
+                            dateBetween: {
+                                conditionName: 'Data entre',
+                                init: function (that, fn, preDefined) {
+                                    const from = window.jQuery('<input type="date">').val(preDefined?.[0] || '');
+                                    const to = window.jQuery('<input type="date">').val(preDefined?.[1] || '');
+                                    from.add(to).on('change', () => fn([from.val(), to.val()]));
+                                    return window.jQuery('<div>').append(from).append(' até ').append(to);
+                                },
+                                inputValue: el => [
+                                    el.find('input').eq(0).val(),
+                                    el.find('input').eq(1).val()
+                                ],
+                                isInputValid: el => el.find('input').eq(0).val() && el.find('input').eq(1).val(),
+                                search: (value, input) => {
+                                    const date = moment(value, 'DD/MM/YYYY');
+                                    return date.isBetween(input[0], input[1], 'day', '[]'); // inclusive
+                                }
+                            }
                         }
                     }
                 },
-                
+
                 classTable: "min-w-full leading-normal",
             } as JovencioDataTableOption,
+
+            optionsDataTableSearch: {} as JovencioDataTableOption,
             updateAjax: '',
             locale: "en"
         }
     },
     components: {
+        JovencioSearchDatatable,
         JovencioDatatable
     },
     created() {
@@ -282,7 +423,7 @@ export default {
                 name: () => {
                     try {
                         const i18n = {
-                            'pt-BR': "Monetização",
+                            'br': "Monetização",
                             'en': "Monetization"
                         };
                         return i18n[self.locale];
@@ -295,7 +436,7 @@ export default {
                     try {
                         const floatValue = parseFloat(data);
                         const i18n = {
-                            'pt-BR': new Intl.NumberFormat("pt-BR", {
+                            'br': new Intl.NumberFormat("pt-BR", {
                                     style: "currency",
                                     currency: "BRL",
                                 }).format(floatValue || 0),
@@ -409,21 +550,340 @@ export default {
                 }
             },
         ] as JovencioDataTableColumn[];
+
+        self.tableSearchColumns = [
+            {
+                id: "deal_id",
+                name: ('Codigo'),
+                orderable: true,
+                searchable: true,
+                type: 'string',
+            },
+            {
+                id: "item",
+                name: ('Deal'),
+                orderable: true,
+                searchable: true,
+                type: 'example-mix',
+            },
+            {
+                id: "stage",
+                name: ('Etapa'),
+                orderable: true,
+                searchable: true,
+                type: 'string',
+            },
+            {
+                id: "status",
+                name: ('Status'),
+                orderable: false,
+                searchable: false,
+            },
+            {
+                id: "priority",
+                name: ('Prioridade'),
+                orderable: false,
+                searchable: false,
+            },
+            {
+                id: "property",
+                name: ('Proprietario'),
+                orderable: false,
+                searchable: false,
+            },
+            {
+                id: "person",
+                type: 'string',
+                name: ("Person"),
+                orderable: true,
+                searchable: false,
+            },
+            {
+                id: "company",
+                type: 'string',
+                name: ("Company"),
+                orderable: true,
+                searchable: false,
+            },
+            {
+                id: "tag",
+                type: 'string',
+                name: ("Tag"),
+                orderable: true,
+                searchable: false,
+            },
+            {
+                id: "history",
+                type: 'string',
+                name: ("Historico"),
+                orderable: true,
+                searchable: false,
+            },
+            {
+                id: "activity",
+                type: 'string',
+                name: ("Atividade"),
+                orderable: true,
+                searchable: false,
+            },
+            {
+                id: "created_at",
+                type: 'moment',
+                orderable: true,
+                searchable: false,
+                name: ("Created At"),
+            }
+        ] as JovencioDataTableColumn[];
+
+        self.optionsDataTableSearch = {
+                searchBuilder: {
+                    enable: true,
+                    columns: true,
+                    // example on documentation https://datatables.net/extensions/searchbuilder/examples/customisation/plugin.html
+                    conditions: {
+                        "example-select-title": {
+                            '=': {
+                                isInputValid: function (el) {
+                                    return window.jQuery(el[0]).find('option:selected').length > 0;
+                                },
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string.equals || 'Igual ';
+                                },
+                                inputValue: function (el) {
+                                    return window.jQuery(el[0]).find('option:selected').map(function () {
+                                        return window.jQuery(this).val();
+                                    }).get();
+                                },
+                                init: function (that, fn, preDefined = null) {
+                                    let column = window.jQuery(that.dom.data).children('option:selected').val();
+                                    let indexArray = that.s.dt.rows().indexes().toArray();
+                                    let added = [];
+
+                                    let el = window.jQuery('<select class="dtsb-value dtsb-dropDown dtsb-select" style="width: 300px"></select>');
+                                    window.jQuery(el).append('<option value="">Selecione um valor</option>');
+
+                                    for (let index of indexArray) {
+                                        let cell = that.s.dt.cell(index, column);
+                                        let value = {
+                                            filter: cell.render(that.c.orthogonal.search),
+                                            index,
+                                            text: cell.render('display')
+                                        };
+
+                                        if (added.indexOf(value.filter) === -1) {
+                                            let opt = window.jQuery('<option>', {
+                                                text: value.text,
+                                                value: value.filter
+                                            });
+
+                                            window.jQuery(el).append(opt);
+                                            added.push(value.filter);
+
+                                            if (preDefined !== null && opt.val() === preDefined[0]) {
+                                                opt.prop('selected', true);
+                                            }
+                                        }
+                                    }
+
+                                    el.on('change', function () {
+                                        fn(that, el);
+                                    });
+
+                                    return el;
+                                },
+                                search: function (value, comparison) {
+                                    return value === comparison[0];
+                                }
+                            }
+                        },
+                        "example-mix": {
+                            contains: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.contains || 'Contém';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    
+                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    el.on('input', function () {
+                                        fn(that, el);
+                                    });
+                                    return el;
+                                },
+                                inputValue: el => window.jQuery(el[0]).val(),
+                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                search: (value, input) => value.toLowerCase().includes(input.toLowerCase())
+                            },
+                            equals: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.equals || 'Igual';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    el.on('input', function () {
+                                        fn(that, el);
+                                    });
+                                    return el;
+                                },
+                                inputValue: el => window.jQuery(el[0]).val(),
+                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                search: (value, input) => value.toLowerCase() === input.toLowerCase()
+                            },
+                            startsWith: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.startsWith || 'Começa com';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    el.on('input', function () {
+                                        fn(that, el);
+                                    });
+                                    return el;
+                                },
+                                inputValue: el => window.jQuery(el[0]).val(),
+                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                search: (value, input) => value.toLowerCase().startsWith(input.toLowerCase())
+                            },
+                            endsWith: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.endsWith || 'Termina com';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    el.on('input', function () {
+                                        fn(that, el);
+                                    });
+                                    return el;
+                                },
+                                inputValue: el => window.jQuery(el[0]).val(),
+                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                search: (value, input) => value.toLowerCase().endsWith(input.toLowerCase())
+                            },
+                            dateEquals: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateEquals || 'Data igual';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    let el = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const dt = new window.searchbuilderDT.DateTime(el[0], {
+                                        format: 'DD/MM/YYYY',
+                                        locale: that.locale
+                                    });
+                                    if (preDefined) {
+                                        dt.val(preDefined[0]);
+                                    }
+
+                                    el.on('change', function () {
+                                        fn(that, dt.val());
+                                    });
+
+                                    return el;
+                                },
+                                inputValue: el => window.jQuery(el[0]).val(),
+                                isInputValid: el => window.jQuery(el[0]).val(),
+                                search: (value, input) => moment(value, 'DD/MM/YYYY').isSame(input, 'day')
+                            },
+                            dateBefore: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateBefore || 'Data antes de';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    let el = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const dt = new window.searchbuilderDT.DateTime(el[0]);
+
+                                    if (preDefined) {
+                                        dt.val(preDefined[0]);
+                                    }
+
+                                    el.on('change', function () {
+                                        fn(that, dt.val());
+                                    });
+
+                                    return el;
+                                },
+                                inputValue: el => window.jQuery(el[0]).val(),
+                                isInputValid: el => window.jQuery(el[0]).val(),
+                                search: (value, input) => moment(value, 'DD/MM/YYYY').isBefore(input, 'day')
+                            },
+                            dateAfter: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateAfter || 'Data depois de';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    let el = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const dt = new window.searchbuilderDT.DateTime(el[0]);
+
+                                    if (preDefined) {
+                                        dt.val(preDefined[0]);
+                                    }
+
+                                    el.on('change', function () {
+                                        fn(that, dt.val());
+                                    });
+
+                                    return el;
+                                },
+                                inputValue: el => window.jQuery(el[0]).val(),
+                                isInputValid: el => window.jQuery(el[0]).val(),
+                                search: (value, input) => moment(value, 'DD/MM/YYYY').isAfter(input, 'day')
+                            },
+                            dateBetween: {
+                                conditionName: function (dt) {
+                                    return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateBetween || 'Data entre';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    const container = window.jQuery('<div class="dtsb-value dtsb-input" style="height: 100%;"></div>');
+
+                                    // Campo "de"
+                                    const inputFrom = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const pickerFrom = new window.searchbuilderDT.DateTime(inputFrom[0]);
+                                    if (preDefined && preDefined[0]) pickerFrom.val(preDefined[0]);
+
+                                    // Campo "até"
+                                    const inputTo = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const pickerTo = new window.searchbuilderDT.DateTime(inputTo[0]);
+                                    if (preDefined && preDefined[1]) pickerTo.val(preDefined[1]);
+
+                                    // Evento de mudança
+                                    inputFrom.add(inputTo).on('change', function () {
+                                        fn(that, [pickerFrom.val(), pickerTo.val()]);
+                                    });
+
+                                    container.append(inputFrom).append(' até ').append(inputTo);
+                                    return container;
+                                },
+                                inputValue: el => [
+                                    window.jQuery(el[0]).find('input').eq(0).val(),
+                                    window.jQuery(el[0]).find('input').eq(1).val()
+                                ],
+                                isInputValid: el => window.jQuery(el[0]).find('input').eq(0).val() && window.jQuery(el[0]).find('input').eq(1).val(),
+                                search: (value, input) => {
+                                    const date = moment(value, 'DD/MM/YYYY');
+                                    return date.isBetween(input[0], input[1], 'day', '[]'); // inclusive
+                                }
+                            }
+                        }
+                    }
+                },
+            } as JovencioDataTableOption;
     },
     mounted() {
-		setTimeout(() => {
-			this.showDataTable = true;
-		}, 500);
+        setTimeout(() => {
+            this.showDataTable = true;
+        }, 500);
     },
     methods: {
-        listenTrigger(trigger:JovencioTrigger) {
+        listenTrigger(trigger: JovencioTrigger) {
             alert(JSON.stringify(trigger))
         },
-        listenTrigger2(trigger:JovencioTrigger) {
+        listenTrigger2(trigger: JovencioTrigger) {
             alert(JSON.stringify(trigger))
         },
-        setLanguage(locale:string) {
+        setLanguage(locale: string) {
             this.locale = locale
+            console.log(this.locale)
+        },
+        listenTrigger3(search:any) {
+            console.log(search)
         }
     }
 };
