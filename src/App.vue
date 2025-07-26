@@ -31,6 +31,9 @@
                 @click="setLanguage('br')">pt-BR</button>
             <JovencioSearchDatatable :locale="locale" :columns="tableSearchColumns"
                 :options="optionsDataTableSearch" @search="listenTrigger3" />
+
+            <JovencioDatatable :criteria="criteria" :locale="locale" :columns="tableColumns" :update="updateAjax" :options="optionsDataTable2" @trigger="listenTrigger" @listen="listenTrigger2" />
+            
         </div>
     </div>
 
@@ -52,6 +55,27 @@ export default {
 
             showDataTable: true,
             showDataTableSearch: false,
+            optionsDataTable2: {
+                url: "https://jsonplaceholder.typicode.com/posts",
+                /**
+                 *  dataSrc was used to create a test environment during development. 
+                 *  Please return a dataset in the format expected by the datatable
+                 *  https://datatables.net/examples/server_side/return_search.html, 
+                 *  and there's no need for that closure to format the data.
+                 */
+                dataSrc: function (json) {
+                    return json.map(post => ({
+                        id: post.id,
+                        title: post.title,
+                        body: post.body,
+                        created_at: new Date(),
+                        actions: '',
+                        views: Math.floor(Math.random() * (9999 - 10 + 1)),
+                        monetization: Math.floor(Math.random() * (9999 - 10 + 1)) + 10,
+                    }));
+                },
+                classTable: "min-w-full leading-normal",
+            } as JovencioDataTableOption,
             optionsDataTable: {
                 url: "https://jsonplaceholder.typicode.com/posts",
                 /**
@@ -73,7 +97,7 @@ export default {
                 },
 
                 searchBuilder: {
-                    enable: true,
+                    enable: false,
                     columns: [0, 1, 2, 3, 4, 5],
                     // example on documentation https://datatables.net/extensions/searchbuilder/examples/customisation/plugin.html
                     conditions: {
@@ -244,7 +268,8 @@ export default {
 
             optionsDataTableSearch: {} as JovencioDataTableOption,
             updateAjax: '',
-            locale: "en"
+            locale: "en",
+            criteria:null as any,
         }
     },
     components: {
@@ -550,7 +575,7 @@ export default {
                 }
             },
         ] as JovencioDataTableColumn[];
-
+        
         self.tableSearchColumns = [
             {
                 id: "deal_id",
@@ -883,6 +908,7 @@ export default {
             console.log(this.locale)
         },
         listenTrigger3(search:any) {
+            this.criteria = search.searchBuilder;
             console.log(search)
         }
     }

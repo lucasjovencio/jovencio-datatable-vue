@@ -82,6 +82,11 @@ export default {
 				return ['en', 'br', "pt-BR", "pt-br"].includes(value);
 			}
 		},
+		criteria: {
+			type: Object as any,
+			default: null,
+			required: false,
+		}
 	},
 	data() {
 		return {
@@ -98,7 +103,8 @@ export default {
 			oldLocaleLocal: 'en',
 			updateLocal: null,
 			fullImport: loadingFinishImports,
-			datatableId: null as any
+			datatableId: null as any,
+			criteriaLocal: null as any
 		};
 	},
 	computed: {
@@ -219,6 +225,18 @@ export default {
 				// @ts-ignore
 				this.setConfigLocale();
 			}
+		},
+		criteria(newVal: any, oldVal: any) {
+			const self = this;
+			// @ts-ignore
+			if (newVal && self.dataReady && self.$refs && self.$refs.jovencioDataTableRef ) {
+				// @ts-ignore
+				this.criteriaLocal = newVal;
+				// @ts-ignore
+				const page = this.$refs.jovencioDataTableRef.dt.page();
+				// @ts-ignore
+				this.updateDataTable(page);
+			}
 		}
 	},
 	created() {
@@ -235,9 +253,12 @@ export default {
 		// @ts-ignore
 		self.createOptions();
 		setTimeout(() => {
+			// @ts-ignore
 			if (self.dataReady && self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt &&
+				// @ts-ignore
 				self.locale !== self.localeLocal
 			) {
+				// @ts-ignore
 				self.changeLocale(self.locale)
 			}
 		}, 300);
@@ -246,16 +267,19 @@ export default {
 	onUnmounted() {
 		// @ts-ignore
 		this.datatableId = this.generateUniqueId();
+		// @ts-ignore
 		this.dataReady = false;
 	},
 	onDeactivated() {
 		// @ts-ignore
 		this.datatableId = this.generateUniqueId();
+		// @ts-ignore
 		this.dataReady = false;
 	},// @ts-ignore
 	destroyed() {
 		// @ts-ignore
 		this.datatableId = this.generateUniqueId();
+		// @ts-ignore
 		this.dataReady = false;
 		// @ts-ignore
 		this.callbackHeader = null;
@@ -285,8 +309,14 @@ export default {
 						url: self.url,
 						"data": function (d: any) {
 							// @ts-ignore
-							d.format_date_locale = self.formatDateLocal;
-							d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+							d.format_date_locale 	= self.formatDateLocal;
+							// @ts-ignore
+							if (self.criteriaLocal) {
+								// @ts-ignore
+								d.searchBuilder 	= self.criteriaLocal;
+							}
+							
+							d.timezone_locale 		= Intl.DateTimeFormat().resolvedOptions().timeZone;
 						}
 					},
 					suppressWarnings: true,
@@ -375,6 +405,11 @@ export default {
 							"data": function (d: any) {// @ts-ignore
 								d.format_date_locale = self.formatDateLocal;
 								d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+								// @ts-ignore
+								if (self.criteriaLocal) {
+									// @ts-ignore
+									d.searchBuilder 	= self.criteriaLocal;
+								}
 							}
 						}
 					};
@@ -821,6 +856,34 @@ export default {
 				this.optionsDataTable = options;
 				// @ts-ignore
 				this.datatableId = this.generateUniqueId();
+			}
+		},
+		updateCriteria() {
+			const self = this;
+
+			this.criteriaLocal;
+			// @ts-ignore
+			const page = this.$refs.jovencioDataTableRef.dt.page();
+			
+			// @ts-ignore
+			this.$refs.jovencioDataTableRef.dt.ajax.params(function(d) {
+				d.searchBuilder = self.criteriaLocal;
+			});
+
+			// @ts-ignore
+			this.updateDataTable(page);
+			// @ts-ignore
+			if (self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt) {
+				// @ts-ignore
+				let state = self.$refs.jovencioDataTableRef.dt.state();
+				if (state && state.searchBuilder) {
+					// @ts-ignore
+					this.adjustMomentValues(state.searchBuilder);
+					// @ts-ignore
+					self.criteria = state.searchBuilder;
+				} else {
+					self.criteria = {};
+				}
 			}
 		},
 		async unListen() {
