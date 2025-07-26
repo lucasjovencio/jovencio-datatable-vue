@@ -29,8 +29,7 @@
             <button
                 class="button inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
                 @click="setLanguage('br')">pt-BR</button>
-            <JovencioSearchDatatable :locale="locale" :columns="tableSearchColumns"
-                :options="optionsDataTableSearch" @search="listenTrigger3" />
+            <JovencioSearchDatatable :locale="locale" :columns="tableSearchColumns" :options="optionsDataTableSearch" @search="listenTrigger3" />
 
             <JovencioDatatable :criteria="criteria" :locale="locale" :columns="tableColumns" :update="updateAjax" :options="optionsDataTable2" @trigger="listenTrigger" @listen="listenTrigger2" />
             
@@ -889,7 +888,7 @@ export default {
                         }
                     }
                 },
-            } as JovencioDataTableOption;
+        } as JovencioDataTableOption;
     },
     mounted() {
         setTimeout(() => {
@@ -905,11 +904,9 @@ export default {
         },
         setLanguage(locale: string) {
             this.locale = locale
-            console.log(this.locale)
         },
         listenTrigger3(search:any) {
             this.criteria = search.searchBuilder;
-            console.log(search)
         }
     }
 };
