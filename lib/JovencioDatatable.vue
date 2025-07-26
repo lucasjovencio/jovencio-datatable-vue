@@ -858,34 +858,6 @@ export default {
 				this.datatableId = this.generateUniqueId();
 			}
 		},
-		updateCriteria() {
-			const self = this;
-
-			this.criteriaLocal;
-			// @ts-ignore
-			const page = this.$refs.jovencioDataTableRef.dt.page();
-			
-			// @ts-ignore
-			this.$refs.jovencioDataTableRef.dt.ajax.params(function(d) {
-				d.searchBuilder = self.criteriaLocal;
-			});
-
-			// @ts-ignore
-			this.updateDataTable(page);
-			// @ts-ignore
-			if (self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt) {
-				// @ts-ignore
-				let state = self.$refs.jovencioDataTableRef.dt.state();
-				if (state && state.searchBuilder) {
-					// @ts-ignore
-					this.adjustMomentValues(state.searchBuilder);
-					// @ts-ignore
-					self.criteria = state.searchBuilder;
-				} else {
-					self.criteria = {};
-				}
-			}
-		},
 		async unListen() {
 			const self = this;// @ts-ignore
 
