@@ -7,6 +7,7 @@
 
 <script lang="ts">
 const loadingFinishImports = ref(false)
+
 // @ts-ignore
 import $ from 'jquery';
 // @ts-ignore
@@ -47,10 +48,7 @@ if (!window.jQuery) window.jQuery = $;
 	const dt = await import('datatables.net-datetime');
 	if (!window.searchbuilderDT) window.searchbuilderDT = sb;
 	if (!window.DateTimeDT) window.DateTimeDT = dt;
-	// @ts-ignore
-	SearchBuilderModule.value = sb;
-	// @ts-ignore
-	SearchBuilderDateModule.value = dt;
+
 	const DateTime = dt.DateTime || dt.default || dt;
 	window.searchbuilderDT = {
 		...sb,
