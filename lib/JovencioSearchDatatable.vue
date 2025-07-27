@@ -52,6 +52,10 @@ if (!window.jQuery) window.jQuery = $;
 		...sb,
 		DateTime
 	};
+
+	const Criteria = sb.default?.Criteria || sb?.criteria;
+	if (!window.Criteria) window.Criteria = Criteria;
+	
 })();
 
 
