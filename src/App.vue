@@ -726,13 +726,13 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.contains || 'Contém';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    
                                     let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
                                     el.on('input', function () {
                                         fn(that, el);
                                     });
                                     return el;
                                 },
+                                "origCond": "teste",
                                 inputValue: el => window.jQuery(el[0]).val(),
                                 isInputValid: el => window.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase().includes(input.toLowerCase())
@@ -748,6 +748,7 @@ export default {
                                     });
                                     return el;
                                 },
+                                "origCond": "teste1",
                                 inputValue: el => window.jQuery(el[0]).val(),
                                 isInputValid: el => window.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase() === input.toLowerCase()
@@ -763,6 +764,7 @@ export default {
                                     });
                                     return el;
                                 },
+                                "origCond": "teste2",
                                 inputValue: el => window.jQuery(el[0]).val(),
                                 isInputValid: el => window.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase().startsWith(input.toLowerCase())
@@ -778,6 +780,7 @@ export default {
                                     });
                                     return el;
                                 },
+                                "origCond": "teste3",
                                 inputValue: el => window.jQuery(el[0]).val(),
                                 isInputValid: el => window.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase().endsWith(input.toLowerCase())
@@ -802,6 +805,7 @@ export default {
 
                                     return el;
                                 },
+                                "origCond": "teste4",
                                 inputValue: el => window.jQuery(el[0]).val(),
                                 isInputValid: el => window.jQuery(el[0]).val(),
                                 search: (value, input) => moment(value, 'DD/MM/YYYY').isSame(input, 'day')
@@ -824,6 +828,7 @@ export default {
 
                                     return el;
                                 },
+                                "origCond": "teste5",
                                 inputValue: el => window.jQuery(el[0]).val(),
                                 isInputValid: el => window.jQuery(el[0]).val(),
                                 search: (value, input) => moment(value, 'DD/MM/YYYY').isBefore(input, 'day')
@@ -846,6 +851,7 @@ export default {
 
                                     return el;
                                 },
+                                "origCond": "teste5",
                                 inputValue: el => window.jQuery(el[0]).val(),
                                 isInputValid: el => window.jQuery(el[0]).val(),
                                 search: (value, input) => moment(value, 'DD/MM/YYYY').isAfter(input, 'day')

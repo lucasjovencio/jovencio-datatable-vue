@@ -1,7 +1,7 @@
 <template>
 	<div v-if="dataReady">
-		<DataTable :key="datatableId" v-show="enableAfterInit" ref="JovencioRefSearchDatatable" :options="optionsDataTable"
-			:columns="columnsDataTable" :data="dataSearch" :class="classTable" />
+		<DataTable :key="datatableId" v-show="enableAfterInit" ref="JovencioRefSearchDatatable"
+			:options="optionsDataTable" :columns="columnsDataTable" :data="dataSearch" :class="classTable" />
 	</div>
 </template>
 
@@ -169,7 +169,7 @@ export default {
 					this.localeLocal = newVal;
 					// @ts-ignore
 					this.changeLocale(newVal);
-	
+
 					// @ts-ignore
 					const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
 					window.searchbuilderDT = {
@@ -238,11 +238,23 @@ export default {
 				...SearchBuilderModule.value,
 				DateTime
 			};
-			
+
 			// @ts-ignore
 			this.datatableId = this.generateUniqueId();
 			// @ts-ignore
 			this.dataReady = true;
+		},
+		injectOrigCond(details:any, conditionsMap:any) {
+			return {
+				...details,
+				criteria: details.criteria.map((crit:any) => {
+					const condMeta = conditionsMap[crit.type][crit.condition];
+					return {
+						...crit,
+						origCond: condMeta?.origCond || crit.condition
+					};
+				})
+			};
 		},
 		createOptions() {
 			try {
@@ -253,8 +265,10 @@ export default {
 					// @ts-ignore
 					ajax: function (data, callback, settings) {
 						if (data.searchBuilder) {
+							// @ts-ignore
+							const searchBuilder = self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions);
 							self.$emit('search', {
-								searchBuilder: data.searchBuilder,
+								searchBuilder: searchBuilder,
 								format_date_locale: self.formatDateLocal,
 								timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
 							});
@@ -707,7 +721,7 @@ export default {
 					};
 				}
 
-				
+
 				// @ts-ignore
 				this.optionsDataTable = options;
 				// @ts-ignore
