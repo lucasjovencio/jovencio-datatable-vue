@@ -42,6 +42,26 @@ if (!window.jQuery) window.jQuery = $;
 	await import('datatables.net-searchbuilder-dt');
 	// @ts-ignore
 	await import('datatables.net-responsive-dt');
+
+	const sb = await import('datatables.net-searchbuilder-dt');
+	const dt = await import('datatables.net-datetime');
+	if (!window.searchbuilderDT) window.searchbuilderDT = sb;
+	if (!window.DateTimeDT) window.DateTimeDT = dt;
+	// @ts-ignore
+	SearchBuilderModule.value = sb;
+	// @ts-ignore
+	SearchBuilderDateModule.value = dt;
+	const DateTime = dt.DateTime || dt.default || dt;
+	window.searchbuilderDT = {
+		...sb,
+		DateTime
+	};
+
+	// @ts-ignore
+	const Criteria = sb.default?.Criteria || sb?.criteria;
+	// @ts-ignore
+	if (!window.Criteria) window.Criteria = Criteria;
+
 	loadingFinishImports.value = true;
 })();
 
@@ -298,6 +318,18 @@ export default {
 			// @ts-ignore
 			this.dataReady = true;
 		},
+		injectOrigCond(details:any, conditionsMap:any) {
+			return {
+				...details,
+				criteria: details.criteria.map((crit:any) => {
+					const condMeta = conditionsMap[crit.type][crit.condition];
+					return {
+						...crit,
+						origCond: condMeta?.origCond || crit.condition
+					};
+				})
+			};
+		},
 		createOptions() {
 			try {
 				const self = this;
@@ -308,6 +340,12 @@ export default {
 						// @ts-ignore
 						url: self.url,
 						"data": function (d: any) {
+							if (d.searchBuilder) {
+								// @ts-ignore
+								const searchBuilder = self.injectOrigCond(d.searchBuilder, self.options.searchBuilder.conditions);
+								d.searchBuilder = searchBuilder;
+							}
+
 							// @ts-ignore
 							d.format_date_locale 	= self.formatDateLocal;
 							// @ts-ignore

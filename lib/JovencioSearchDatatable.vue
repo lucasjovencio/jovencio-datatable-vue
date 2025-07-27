@@ -52,6 +52,11 @@ if (!window.jQuery) window.jQuery = $;
 		...sb,
 		DateTime
 	};
+
+	// @ts-ignore
+	const Criteria = sb.default?.Criteria || sb?.criteria;
+	// @ts-ignore
+	if (!window.Criteria) window.Criteria = Criteria;
 })();
 
 

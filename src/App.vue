@@ -890,6 +890,24 @@ export default {
                                     const date = moment(value, 'DD/MM/YYYY');
                                     return date.isBetween(input[0], input[1], 'day', '[]'); // inclusive
                                 }
+                            },
+                            dateBetweenCrit: {
+                                conditionName: function (dt) {
+                                    return 'Window criteria Between';
+                                },
+                                init: function (that, fn, preDefined) {
+                                    const el = window.Criteria.init2Date(that, fn, preDefined);
+                                    return el;
+                                },
+                                inputValue: el => [
+                                    window.jQuery(el[0]).find('input').eq(0).val(),
+                                    window.jQuery(el[0]).find('input').eq(1).val()
+                                ],
+                                isInputValid: el => window.jQuery(el[0]).find('input').eq(0).val() && window.jQuery(el[0]).find('input').eq(1).val(),
+                                search: (value, input) => {
+                                    const date = moment(value, 'DD/MM/YYYY');
+                                    return date.isBetween(input[0], input[1], 'day', '[]'); // inclusive
+                                }
                             }
                         }
                     }
