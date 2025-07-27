@@ -57,7 +57,9 @@ if (!window.jQuery) window.jQuery = $;
 		DateTime
 	};
 
+	// @ts-ignore
 	const Criteria = sb.default?.Criteria || sb?.criteria;
+	// @ts-ignore
 	if (!window.Criteria) window.Criteria = Criteria;
 
 	loadingFinishImports.value = true;
