@@ -188,7 +188,8 @@ export default {
 
 					// @ts-ignore
 					const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
-					window.searchbuilderDT = {
+					// @ts-ignore
+					window.jvDT.searchbuilder = {
 						// @ts-ignore
 						...SearchBuilderModule.value,
 						DateTime
@@ -249,7 +250,7 @@ export default {
 
 			// @ts-ignore
 			const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
-			window.searchbuilderDT = {
+			window.jvDT.searchbuilder = {
 				// @ts-ignore
 				...SearchBuilderModule.value,
 				DateTime
