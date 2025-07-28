@@ -103,23 +103,23 @@ export default {
                         "example-select-title": {
                             '=': {
                                 isInputValid: function (el) {
-                                    return window.jQuery(el[0]).find('option:selected').length > 0;
+                                    return window.jvDT.jQuery(el[0]).find('option:selected').length > 0;
                                 },
                                 conditionName: function (dt) {
                                     return dt.settings()[0].oLanguage.searchBuilder.conditions.string.equals;
                                 },
                                 inputValue: function (el) {
-                                    return window.jQuery(el[0]).find('option:selected').map(function () {
-                                        return window.jQuery(this).val();
+                                    return window.jvDT.jQuery(el[0]).find('option:selected').map(function () {
+                                        return window.jvDT.jQuery(this).val();
                                     }).get();
                                 },
                                 init: function (that, fn, preDefined = null) {
-                                    let column = window.jQuery(that.dom.data).children('option:selected').val();
+                                    let column = window.jvDT.jQuery(that.dom.data).children('option:selected').val();
                                     let indexArray = that.s.dt.rows().indexes().toArray();
                                     let added = [];
 
-                                    let el = window.jQuery('<select class="dtsb-value dtsb-dropDown dtsb-select" style="width: 300px"></select>');
-                                    window.jQuery(el).append('<option value="">Selecione um valor</option>');
+                                    let el = window.jvDT.jQuery('<select class="dtsb-value dtsb-dropDown dtsb-select" style="width: 300px"></select>');
+                                    window.jvDT.jQuery(el).append('<option value="">Selecione um valor</option>');
 
                                     for (let index of indexArray) {
                                         let cell = that.s.dt.cell(index, column);
@@ -130,12 +130,12 @@ export default {
                                         };
 
                                         if (added.indexOf(value.filter) === -1) {
-                                            let opt = window.jQuery('<option>', {
+                                            let opt = window.jvDT.jQuery('<option>', {
                                                 text: value.text,
                                                 value: value.filter
                                             });
 
-                                            window.jQuery(el).append(opt);
+                                            window.jvDT.jQuery(el).append(opt);
                                             added.push(value.filter);
 
                                             if (preDefined !== null && opt.val() === preDefined[0]) {
@@ -159,7 +159,7 @@ export default {
                             contains: {
                                 conditionName: 'Contém',
                                 init: function (that, fn, preDefined) {
-                                    const input = window.jQuery('<input type="text">')
+                                    const input = window.jvDT.jQuery('<input type="text">')
                                         .val(preDefined || '')
                                         .on('input', () => fn(input.val()));
                                     return input;
@@ -171,7 +171,7 @@ export default {
                             equals: {
                                 conditionName: 'Igual',
                                 init: function (that, fn, preDefined) {
-                                    const input = window.jQuery('<input type="text">')
+                                    const input = window.jvDT.jQuery('<input type="text">')
                                         .val(preDefined || '')
                                         .on('input', () => fn(input.val()));
                                     return input;
@@ -183,7 +183,7 @@ export default {
                             startsWith: {
                                 conditionName: 'Começa com',
                                 init: function (that, fn, preDefined) {
-                                    const input = window.jQuery('<input type="text">')
+                                    const input = window.jvDT.jQuery('<input type="text">')
                                         .val(preDefined || '')
                                         .on('input', () => fn(input.val()));
                                     return input;
@@ -195,7 +195,7 @@ export default {
                             endsWith: {
                                 conditionName: 'Termina com',
                                 init: function (that, fn, preDefined) {
-                                    const input = window.jQuery('<input type="text">')
+                                    const input = window.jvDT.jQuery('<input type="text">')
                                         .val(preDefined || '')
                                         .on('input', () => fn(input.val()));
                                     return input;
@@ -207,7 +207,7 @@ export default {
                             dateEquals: {
                                 conditionName: 'Data igual',
                                 init: function (that, fn, preDefined) {
-                                    const input = window.jQuery('<input type="date">')
+                                    const input = window.jvDT.jQuery('<input type="date">')
                                         .val(preDefined || '')
                                         .on('change', () => fn(input.val()));
                                     return input;
@@ -219,7 +219,7 @@ export default {
                             dateBefore: {
                                 conditionName: 'Data antes de',
                                 init: function (that, fn, preDefined) {
-                                    const input = window.jQuery('<input type="date">')
+                                    const input = window.jvDT.jQuery('<input type="date">')
                                         .val(preDefined || '')
                                         .on('change', () => fn(input.val()));
                                     return input;
@@ -231,7 +231,7 @@ export default {
                             dateAfter: {
                                 conditionName: 'Data depois de',
                                 init: function (that, fn, preDefined) {
-                                    const input = window.jQuery('<input type="date">')
+                                    const input = window.jvDT.jQuery('<input type="date">')
                                         .val(preDefined || '')
                                         .on('change', () => fn(input.val()));
                                     return input;
@@ -243,10 +243,10 @@ export default {
                             dateBetween: {
                                 conditionName: 'Data entre',
                                 init: function (that, fn, preDefined) {
-                                    const from = window.jQuery('<input type="date">').val(preDefined?.[0] || '');
-                                    const to = window.jQuery('<input type="date">').val(preDefined?.[1] || '');
+                                    const from = window.jvDT.jQuery('<input type="date">').val(preDefined?.[0] || '');
+                                    const to = window.jvDT.jQuery('<input type="date">').val(preDefined?.[1] || '');
                                     from.add(to).on('change', () => fn([from.val(), to.val()]));
-                                    return window.jQuery('<div>').append(from).append(' até ').append(to);
+                                    return window.jvDT.jQuery('<div>').append(from).append(' até ').append(to);
                                 },
                                 inputValue: el => [
                                     el.find('input').eq(0).val(),
@@ -726,15 +726,15 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.contains || 'Contém';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    let el = window.jvDT.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
                                     el.on('input', function () {
                                         fn(that, el);
                                     });
                                     return el;
                                 },
                                 "origCond": "teste",
-                                inputValue: el => window.jQuery(el[0]).val(),
-                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                inputValue: el => window.jvDT.jQuery(el[0]).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase().includes(input.toLowerCase())
                             },
                             equals: {
@@ -742,15 +742,15 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.equals || 'Igual';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    let el = window.jvDT.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
                                     el.on('input', function () {
                                         fn(that, el);
                                     });
                                     return el;
                                 },
                                 "origCond": "teste1",
-                                inputValue: el => window.jQuery(el[0]).val(),
-                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                inputValue: el => window.jvDT.jQuery(el[0]).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase() === input.toLowerCase()
                             },
                             startsWith: {
@@ -758,15 +758,15 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.startsWith || 'Começa com';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    let el = window.jvDT.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
                                     el.on('input', function () {
                                         fn(that, el);
                                     });
                                     return el;
                                 },
                                 "origCond": "teste2",
-                                inputValue: el => window.jQuery(el[0]).val(),
-                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                inputValue: el => window.jvDT.jQuery(el[0]).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase().startsWith(input.toLowerCase())
                             },
                             endsWith: {
@@ -774,15 +774,15 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.string?.endsWith || 'Termina com';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    let el = window.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
+                                    let el = window.jvDT.jQuery('<input class="dtsb-value dtsb-input" type="text">').val(preDefined || '');
                                     el.on('input', function () {
                                         fn(that, el);
                                     });
                                     return el;
                                 },
                                 "origCond": "teste3",
-                                inputValue: el => window.jQuery(el[0]).val(),
-                                isInputValid: el => window.jQuery(el[0]).val().length > 0,
+                                inputValue: el => window.jvDT.jQuery(el[0]).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).val().length > 0,
                                 search: (value, input) => value.toLowerCase().endsWith(input.toLowerCase())
                             },
                             dateEquals: {
@@ -790,8 +790,8 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateEquals || 'Data igual';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    let el = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
-                                    const dt = new window.searchbuilderDT.DateTime(el[0], {
+                                    let el = window.jvDT.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const dt = new window.jvDT.DateTime(el[0], {
                                         format: 'DD/MM/YYYY',
                                         locale: that.locale
                                     });
@@ -806,8 +806,8 @@ export default {
                                     return el;
                                 },
                                 "origCond": "teste4",
-                                inputValue: el => window.jQuery(el[0]).val(),
-                                isInputValid: el => window.jQuery(el[0]).val(),
+                                inputValue: el => window.jvDT.jQuery(el[0]).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).val(),
                                 search: (value, input) => moment(value, 'DD/MM/YYYY').isSame(input, 'day')
                             },
                             dateBefore: {
@@ -815,8 +815,8 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateBefore || 'Data antes de';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    let el = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
-                                    const dt = new window.searchbuilderDT.DateTime(el[0]);
+                                    let el = window.jvDT.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const dt = new window.jvDT.jvDT.DateTime(el[0]);
 
                                     if (preDefined) {
                                         dt.val(preDefined[0]);
@@ -829,8 +829,8 @@ export default {
                                     return el;
                                 },
                                 "origCond": "teste5",
-                                inputValue: el => window.jQuery(el[0]).val(),
-                                isInputValid: el => window.jQuery(el[0]).val(),
+                                inputValue: el => window.jvDT.jQuery(el[0]).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).val(),
                                 search: (value, input) => moment(value, 'DD/MM/YYYY').isBefore(input, 'day')
                             },
                             dateAfter: {
@@ -838,8 +838,8 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateAfter || 'Data depois de';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    let el = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
-                                    const dt = new window.searchbuilderDT.DateTime(el[0]);
+                                    let el = window.jvDT.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const dt = new window.jvDT.DateTime(el[0]);
 
                                     if (preDefined) {
                                         dt.val(preDefined[0]);
@@ -852,8 +852,8 @@ export default {
                                     return el;
                                 },
                                 "origCond": "teste5",
-                                inputValue: el => window.jQuery(el[0]).val(),
-                                isInputValid: el => window.jQuery(el[0]).val(),
+                                inputValue: el => window.jvDT.jQuery(el[0]).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).val(),
                                 search: (value, input) => moment(value, 'DD/MM/YYYY').isAfter(input, 'day')
                             },
                             dateBetween: {
@@ -861,16 +861,16 @@ export default {
                                     return dt?.settings?.()[0]?.oLanguage?.searchBuilder?.conditions?.date?.dateBetween || 'Data entre';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    const container = window.jQuery('<div class="dtsb-value dtsb-input" style="height: 100%;"></div>');
+                                    const container = window.jvDT.jQuery('<div class="dtsb-value dtsb-input" style="height: 100%;"></div>');
 
                                     // Campo "de"
-                                    const inputFrom = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
-                                    const pickerFrom = new window.searchbuilderDT.DateTime(inputFrom[0]);
+                                    const inputFrom = window.jvDT.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const pickerFrom = new window.jvDT.jvDT.DateTime(inputFrom[0]);
                                     if (preDefined && preDefined[0]) pickerFrom.val(preDefined[0]);
 
                                     // Campo "até"
-                                    const inputTo = window.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
-                                    const pickerTo = new window.searchbuilderDT.DateTime(inputTo[0]);
+                                    const inputTo = window.jvDT.jQuery('<input class="dtsb-value dtsb-input dt-datetime">');
+                                    const pickerTo = new window.jvDT.DateTime(inputTo[0]);
                                     if (preDefined && preDefined[1]) pickerTo.val(preDefined[1]);
 
                                     // Evento de mudança
@@ -882,10 +882,10 @@ export default {
                                     return container;
                                 },
                                 inputValue: el => [
-                                    window.jQuery(el[0]).find('input').eq(0).val(),
-                                    window.jQuery(el[0]).find('input').eq(1).val()
+                                    window.jvDT.jQuery(el[0]).find('input').eq(0).val(),
+                                    window.jvDT.jQuery(el[0]).find('input').eq(1).val()
                                 ],
-                                isInputValid: el => window.jQuery(el[0]).find('input').eq(0).val() && window.jQuery(el[0]).find('input').eq(1).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).find('input').eq(0).val() && window.jvDT.jQuery(el[0]).find('input').eq(1).val(),
                                 search: (value, input) => {
                                     const date = moment(value, 'DD/MM/YYYY');
                                     return date.isBetween(input[0], input[1], 'day', '[]'); // inclusive
@@ -896,14 +896,14 @@ export default {
                                     return 'Window criteria Between';
                                 },
                                 init: function (that, fn, preDefined) {
-                                    const el = window.Criteria.init2Date(that, fn, preDefined);
+                                    const el = window.jvDT.Criteria.init2Date(that, fn, preDefined);
                                     return el;
                                 },
                                 inputValue: el => [
-                                    window.jQuery(el[0]).find('input').eq(0).val(),
-                                    window.jQuery(el[0]).find('input').eq(1).val()
+                                    window.jvDT.jQuery(el[0]).find('input').eq(0).val(),
+                                    window.jvDT.jQuery(el[0]).find('input').eq(1).val()
                                 ],
-                                isInputValid: el => window.jQuery(el[0]).find('input').eq(0).val() && window.jQuery(el[0]).find('input').eq(1).val(),
+                                isInputValid: el => window.jvDT.jQuery(el[0]).find('input').eq(0).val() && window.jvDT.jQuery(el[0]).find('input').eq(1).val(),
                                 search: (value, input) => {
                                     const date = moment(value, 'DD/MM/YYYY');
                                     return date.isBetween(input[0], input[1], 'day', '[]'); // inclusive
