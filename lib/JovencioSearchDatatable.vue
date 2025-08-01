@@ -283,7 +283,9 @@ export default {
 					ajax: function (data, callback, settings) {
 						if (data.searchBuilder) {
 							// @ts-ignore
-							const searchBuilder = self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions);
+							const searchBuilder = (Object.values(data.searchBuilder).length) ? self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions) : null;
+							
+							// @ts-ignore
 							self.$emit('search', {
 								searchBuilder: searchBuilder,
 								format_date_locale: self.formatDateLocal,
