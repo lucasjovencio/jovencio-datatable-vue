@@ -9,8 +9,12 @@
 
 declare global {
 	interface Window {
-		searchbuilderDT?: any;
-		DateTimeDT: any
+		jvDT: {
+			DateTime: any;
+			Criteria: any;
+			Jquery: any;
+			searchbuilder:any
+		}
 	}
 }
 
@@ -32,7 +36,14 @@ import { JovencioDataTableOption } from './main';
 import moment from 'moment';
 
 // @ts-ignore
-if (!window.jQuery) window.jQuery = $;
+if (!window.jvDT) window.jvDT = {
+			DateTime: null as any,
+			Criteria: null as any,
+			Jquery: null as any,
+			searchbuilder: null as any
+		};
+// @ts-ignore
+if (!window.jvDT.jQuery) window.jvDT.jQuery = $.noConflict(true);
 
 (async () => {
 	await import('datatables.net-datetime');
@@ -41,14 +52,14 @@ if (!window.jQuery) window.jQuery = $;
 	const dt = await import('datatables.net-datetime');
 	await import('datatables.net-responsive-dt');
 	loadingFinishImportsSearch.value = true;
-	if (!window.searchbuilderDT) window.searchbuilderDT = sb;
-	if (!window.DateTimeDT) window.DateTimeDT = dt;
+	if (!window.jvDT.searchbuilder) window.jvDT.searchbuilder = sb;
+	if (!window.jvDT.DateTime) window.jvDT.DateTime = dt;
 	// @ts-ignore
 	SearchBuilderModule.value = sb;
 	// @ts-ignore
 	SearchBuilderDateModule.value = dt;
 	const DateTime = dt.DateTime || dt.default || dt;
-	window.searchbuilderDT = {
+	window.jvDT.searchbuilder = {
 		...sb,
 		DateTime
 	};
@@ -56,7 +67,7 @@ if (!window.jQuery) window.jQuery = $;
 	// @ts-ignore
 	const Criteria = sb.default?.Criteria || sb?.criteria;
 	// @ts-ignore
-	if (!window.Criteria) window.Criteria = Criteria;
+	if (!window.jvDT.Criteria) window.jvDT.Criteria = Criteria;
 })();
 
 
@@ -177,7 +188,8 @@ export default {
 
 					// @ts-ignore
 					const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
-					window.searchbuilderDT = {
+					// @ts-ignore
+					window.jvDT.searchbuilder = {
 						// @ts-ignore
 						...SearchBuilderModule.value,
 						DateTime
@@ -238,7 +250,7 @@ export default {
 
 			// @ts-ignore
 			const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
-			window.searchbuilderDT = {
+			window.jvDT.searchbuilder = {
 				// @ts-ignore
 				...SearchBuilderModule.value,
 				DateTime

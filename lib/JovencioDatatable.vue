@@ -7,7 +7,16 @@
 
 <script lang="ts">
 const loadingFinishImports = ref(false)
-
+declare global {
+	interface Window {
+		jvDT: {
+			DateTime: any;
+			Criteria: any;
+			Jquery: any;
+			searchbuilder:any
+		}
+	}
+}
 // @ts-ignore
 import $ from 'jquery';
 // @ts-ignore
@@ -34,10 +43,19 @@ import moment from 'moment';
 import { MaskInput } from 'maska';
 
 // @ts-ignore
-if (!window.jQuery) window.jQuery = $;
+if (!window.jvDT) window.jvDT = {
+			DateTime: null as any,
+			Criteria: null as any,
+			Jquery: null as any,
+			searchbuilder: null as any
+		};
+// @ts-ignore
+if (!window.jvDT.jQuery) window.jvDT.jQuery = $.noConflict(true);
 
 (async () => {
 	// @ts-ignore
+
+
 	await import('datatables.net-datetime');
 	// @ts-ignore
 	await import('datatables.net-searchbuilder-dt');
@@ -46,11 +64,10 @@ if (!window.jQuery) window.jQuery = $;
 
 	const sb = await import('datatables.net-searchbuilder-dt');
 	const dt = await import('datatables.net-datetime');
-	if (!window.searchbuilderDT) window.searchbuilderDT = sb;
-	if (!window.DateTimeDT) window.DateTimeDT = dt;
-
+	if (!window.jvDT.searchbuilder) window.jvDT.searchbuilder = sb;
+	if (!window.jvDT.DateTime) window.jvDT.DateTime = dt;
 	const DateTime = dt.DateTime || dt.default || dt;
-	window.searchbuilderDT = {
+	window.jvDT.searchbuilder = {
 		...sb,
 		DateTime
 	};
@@ -58,7 +75,7 @@ if (!window.jQuery) window.jQuery = $;
 	// @ts-ignore
 	const Criteria = sb.default?.Criteria || sb?.criteria;
 	// @ts-ignore
-	if (!window.Criteria) window.Criteria = Criteria;
+	if (!window.jvDT.Criteria) window.jvDT.Criteria = Criteria;
 
 	loadingFinishImports.value = true;
 })();
