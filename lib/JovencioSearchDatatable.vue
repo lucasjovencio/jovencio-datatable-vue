@@ -261,16 +261,27 @@ export default {
 			// @ts-ignore
 			this.dataReady = true;
 		},
-		injectOrigCond(details:any, conditionsMap:any) {
-			return {
-				...details,
-				criteria: details.criteria.map((crit:any) => {
-					const condMeta = conditionsMap[crit.type][crit.condition];
+		injectOrigCond(details: any, conditionsMap: any): any {
+			function recurse(crit: any): any {
+				// Se o critério tem um array de `criteria`, é um grupo lógico (ex: OR, AND)
+				if (crit.criteria && Array.isArray(crit.criteria)) {
 					return {
 						...crit,
-						origCond: condMeta?.origCond || crit.condition
+						criteria: crit.criteria.map(recurse) // chamada recursiva para cada subcritério
 					};
-				})
+				}
+
+				// Se for um critério simples, aplica o mapeamento
+				const condMeta = conditionsMap[crit.type]?.[crit.condition];
+				return {
+					...crit,
+					origCond: condMeta?.origCond || crit.condition
+				};
+			}
+
+			return {
+				...details,
+				criteria: details.criteria.map(recurse)
 			};
 		},
 		createOptions() {
