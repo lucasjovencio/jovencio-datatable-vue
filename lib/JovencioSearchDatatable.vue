@@ -299,7 +299,7 @@ export default {
 					},
 					suppressWarnings: true,
 					serverSide: true,
-					processing: true,
+					processing: false,
 					pageLength: 10,
 					language: this.setLanguageDataTable(),// @ts-ignore
 					footerCallback: async function (row, data, start, end, display) {
