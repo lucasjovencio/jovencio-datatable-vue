@@ -113,6 +113,11 @@ export default {
 				return ['en', 'br', "pt-BR", "pt-br"].includes(value);
 			}
 		},
+		criteria: {
+			type: Object as any,
+			default: null,
+			required: false,
+		},
 	},
 	data() {
 		return {
@@ -204,7 +209,13 @@ export default {
 				// @ts-ignore
 				this.setConfigLocale();
 			}
-		}
+		},
+		criteria(newVal: any, oldVal: any) {
+			if (newVal !== oldVal) {
+				// @ts-ignore
+				this.updateDataTable();
+			}
+		},
 	},
 	created() {
 
@@ -328,7 +339,7 @@ export default {
 				};
 
 				// @ts-ignore
-				if (self.options.searchBuilder && self.options.searchBuilder.enable) {
+				if (self.options.searchBuilder) {
 					const searchBuilderOptions: any = {
 						depthLimit: self.depthSearch,
 						columns: self.options.searchBuilder.columns,
@@ -730,7 +741,7 @@ export default {
 				let options = self.optionsDataTable;
 
 				// @ts-ignore
-				if (state.searchBuilder && Object.keys(state.searchBuilder).length) {
+				if (!self.criteria && state.searchBuilder && Object.keys(state.searchBuilder).length) {
 					// @ts-ignore
 					options.searchBuilder = {
 						// @ts-ignore
@@ -738,6 +749,13 @@ export default {
 							...state.searchBuilder
 						}
 					};
+				// @ts-ignore
+				} else if (self.criteria && state.searchBuilder) {
+					// @ts-ignore
+					options.searchBuilder = {
+						// @ts-ignore
+						...options.searchBuilder, preDefined: self.criteria
+					}
 				}
 
 				if (state.search) {

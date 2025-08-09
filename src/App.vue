@@ -29,9 +29,13 @@
             <button
                 class="button inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
                 @click="setLanguage('br')">pt-BR</button>
-            <JovencioSearchDatatable :locale="locale" :columns="tableSearchColumns" :options="optionsDataTableSearch" @search="listenTrigger3" />
 
-            <JovencioDatatable :criteria="criteria" :locale="locale" :columns="tableColumns" :update="updateAjax" :options="optionsDataTable2" @trigger="listenTrigger" @listen="listenTrigger2" />
+                <button
+                class="button inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
+                @click="addCriteria">Add criteria</button>
+            <JovencioSearchDatatable :criteria="criteriaBuilder" :locale="locale" :columns="tableSearchColumns" :options="optionsDataTableSearch" @search="listenTrigger3" />
+
+            <JovencioDatatable  :locale="locale" :columns="tableColumns" :update="updateAjax" :options="optionsDataTable2" @trigger="listenTrigger" @listen="listenTrigger2" />
             
         </div>
     </div>
@@ -268,7 +272,7 @@ export default {
             optionsDataTableSearch: {} as JovencioDataTableOption,
             updateAjax: '',
             locale: "en",
-            criteria:null as any,
+            criteriaBuilder:null as any,
         }
     },
     components: {
@@ -931,6 +935,12 @@ export default {
         },
         listenTrigger3(search:any) {
             this.criteria = search.searchBuilder;
+        },
+        addCriteria() {
+            
+            let criteria = {"criteria":[{"condition":"contains","data":"Deal","origData":"item","type":"example-mix","value":["oi"],"value1":"oi","origCond":"teste"}],"logic":"AND"};
+            // @ts-ignore
+            this.criteriaBuilder = criteria ? criteria : null;
         }
     }
 };
