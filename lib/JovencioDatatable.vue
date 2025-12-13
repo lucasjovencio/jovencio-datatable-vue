@@ -125,10 +125,7 @@ export default {
 	},
 	data() {
 		// Initialize locale before anything else
-		let initialLocale = this.locale || 'en';
-		if (['br', "pt-BR", "pt-br"].includes(initialLocale)) {
-			initialLocale = "pt-BR";
-		}
+		const initialLocale = this.normalizeLocale(this.locale || 'en');
 		
 		return {
 			dataReady: false,
@@ -245,11 +242,8 @@ export default {
 				return;
 			}
 			
-			// Normalize locale
-			let normalizedLocale = newVal;
-			if (['br', "pt-BR", "pt-br"].includes(newVal)) {
-				normalizedLocale = "pt-BR";
-			}
+			// @ts-ignore
+			const normalizedLocale = this.normalizeLocale(newVal);
 			
 			// Only change if different from current locale
 			// @ts-ignore
@@ -328,6 +322,13 @@ export default {
 	},
 	updated() { },
 	methods: {
+		normalizeLocale(locale: string): string {
+			// Normalize Portuguese locale variants to pt-BR
+			if (['br', 'pt-BR', 'pt-br'].includes(locale)) {
+				return 'pt-BR';
+			}
+			return locale;
+		},
 		setConfigLocale() {
 			// @ts-ignore
 			this.setLanguageDate();
@@ -1023,14 +1024,14 @@ export default {
 		changeLocale(locale: string) {
 			try {
 				// @ts-ignore
-				i18n.global.locale = locale
+				i18n.global.locale = locale;
 				// @ts-ignore
 				this.oldFormatDateLocal = this.formatDateLocal;
 				// @ts-ignore
-				this.formatDateLocal = i18n.global.t("date.format")
+				this.formatDateLocal = i18n.global.t("date.format");
 
 				// Update date language settings
-				this.setLanguageDate()
+				this.setLanguageDate();
 				
 				// Update the DataTable language settings without reloading data
 				// @ts-ignore
@@ -1043,8 +1044,9 @@ export default {
 						// Update language settings using DataTable internal settings
 						// Note: Direct property access is used as DataTable doesn't provide
 						// a public API for updating language after initialization
+						// This is the recommended approach per DataTable documentation
 						const settings = dt.settings();
-						if (settings && settings[0]) {
+						if (settings && settings[0] && settings[0].oLanguage) {
 							settings[0].oLanguage = newLanguage;
 							
 							// Redraw the table to apply language changes without reloading data
