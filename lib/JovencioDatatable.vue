@@ -130,10 +130,6 @@ export default {
 			initialLocale = "pt-BR";
 		}
 		
-		// Set i18n locale immediately
-		// @ts-ignore
-		i18n.global.locale = initialLocale;
-		
 		return {
 			dataReady: false,
 			clousures: [] as JovencioActionClousure[],
@@ -143,8 +139,8 @@ export default {
 			refreshKey: 1,
 			enableAfterInit: true,
 			localeLocal: initialLocale,
-			formatDateLocal: i18n.global.t("date.format"),
-			oldFormatDateLocal: i18n.global.t("date.format"),
+			formatDateLocal: 'MM/DD/YYYY h:mm A',
+			oldFormatDateLocal: 'MM/DD/YYYY h:mm A',
 			oldLocaleLocal: initialLocale,
 			updateLocal: null,
 			fullImport: loadingFinishImports,
@@ -286,7 +282,13 @@ export default {
 		}
 	},
 	created() {
-
+		// Set i18n locale in created hook to avoid side effects in data()
+		// @ts-ignore
+		i18n.global.locale = this.localeLocal;
+		// @ts-ignore
+		this.formatDateLocal = i18n.global.t("date.format");
+		// @ts-ignore
+		this.oldFormatDateLocal = this.formatDateLocal;
 	},
 	mounted() {
 		const self = this;
@@ -1037,12 +1039,21 @@ export default {
 					const dt = this.$refs.jovencioDataTableRef.dt;
 					const newLanguage = this.setLanguageDataTable();
 					
-					// Update language settings using DataTable API
-					// This updates the UI text without reloading the AJAX data
-					dt.settings()[0].oLanguage = newLanguage;
-					
-					// Redraw the table to apply language changes without reloading data
-					dt.draw(false);
+					try {
+						// Update language settings using DataTable internal settings
+						// Note: Direct property access is used as DataTable doesn't provide
+						// a public API for updating language after initialization
+						const settings = dt.settings();
+						if (settings && settings[0]) {
+							settings[0].oLanguage = newLanguage;
+							
+							// Redraw the table to apply language changes without reloading data
+							dt.draw(false);
+						}
+					} catch (langError) {
+						// If direct property access fails, log error but don't break functionality
+						console.warn('Failed to update DataTable language settings:', langError);
+					}
 				}
 			} catch (e) {
 				// continue
