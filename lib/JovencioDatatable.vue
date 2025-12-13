@@ -89,6 +89,18 @@ const i18n = createI18n({
 	messages: { br: br, en: en, 'pt-BR': br, 'pt-br': br },
 });
 
+// Helper function to normalize locale strings
+function normalizeLocale(locale: string | null | undefined): string {
+	if (!locale) {
+		return 'en';
+	}
+	// Normalize Portuguese locale variants to pt-BR
+	if (['br', 'pt-BR', 'pt-br'].includes(locale)) {
+		return 'pt-BR';
+	}
+	return locale;
+}
+
 DataTable.use(DataTablesCore)
 export default {
 	name: 'JovencioDatatable',
@@ -125,7 +137,7 @@ export default {
 	},
 	data() {
 		// Initialize locale before anything else
-		const initialLocale = this.normalizeLocale(this.locale || 'en');
+		const initialLocale = normalizeLocale(this.locale);
 		
 		return {
 			dataReady: false,
@@ -242,18 +254,17 @@ export default {
 				return;
 			}
 			
-			// @ts-ignore
-			const normalizedLocale = this.normalizeLocale(newVal);
+			const normalizedNewLocale = normalizeLocale(newVal);
 			
 			// Only change if different from current locale
 			// @ts-ignore
-			if (normalizedLocale !== this.localeLocal) {
+			if (normalizedNewLocale !== this.localeLocal) {
 				// @ts-ignore
 				this.oldLocaleLocal = this.localeLocal;
 				// @ts-ignore
-				this.localeLocal = normalizedLocale;
+				this.localeLocal = normalizedNewLocale;
 				// @ts-ignore
-				this.changeLocale(normalizedLocale);
+				this.changeLocale(normalizedNewLocale);
 			}
 		},
 		fullImport(newVal: any, oldVal: any) {
@@ -322,13 +333,6 @@ export default {
 	},
 	updated() { },
 	methods: {
-		normalizeLocale(locale: string): string {
-			// Normalize Portuguese locale variants to pt-BR
-			if (['br', 'pt-BR', 'pt-br'].includes(locale)) {
-				return 'pt-BR';
-			}
-			return locale;
-		},
 		setConfigLocale() {
 			// @ts-ignore
 			this.setLanguageDate();
