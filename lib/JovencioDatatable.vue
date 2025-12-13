@@ -154,7 +154,9 @@ export default {
 			updateLocal: null,
 			fullImport: loadingFinishImports,
 			datatableId: null as any,
-			criteriaLocal: null as any
+			criteriaLocal: null as any,
+			lastAjaxResponse: null as any,
+			isLocaleChangeRedraw: false
 		};
 	},
 	computed: {
@@ -344,9 +346,18 @@ export default {
 			this.dataReady = true;
 		},
 		injectOrigCond(details:any, conditionsMap:any) {
+			// If no conditionsMap or no criteria, return details as-is
+			if (!conditionsMap || !details || !details.criteria || !Array.isArray(details.criteria)) {
+				return details;
+			}
 			return {
 				...details,
 				criteria: details.criteria.map((crit:any) => {
+					// Check if the type exists in conditionsMap
+					if (!conditionsMap[crit.type] || !conditionsMap[crit.type][crit.condition]) {
+						return crit;
+					}
+					
 					const condMeta = conditionsMap[crit.type][crit.condition];
 					return {
 						...crit,
@@ -361,26 +372,53 @@ export default {
 
 				let options = {
 					// @ts-ignore
-					ajax: {
+					ajax: function(data: any, callback: any, settings: any) {
+						// If it's a locale change redraw, return cached data without making a request
 						// @ts-ignore
-						url: self.url,
-						"data": function (d: any) {
-							if (d.searchBuilder) {
-								// @ts-ignore
-								const searchBuilder = self.injectOrigCond(d.searchBuilder, self.options.searchBuilder.conditions);
-								d.searchBuilder = searchBuilder;
-							}
-
+						if (self.isLocaleChangeRedraw && self.lastAjaxResponse) {
 							// @ts-ignore
-							d.format_date_locale 	= self.formatDateLocal;
+							self.isLocaleChangeRedraw = false;
+							// Return cached response directly
 							// @ts-ignore
-							if (self.criteriaLocal) {
-								// @ts-ignore
-								d.searchBuilder 	= self.criteriaLocal;
-							}
-							
-							d.timezone_locale 		= Intl.DateTimeFormat().resolvedOptions().timeZone;
+							callback(self.lastAjaxResponse);
+							return;
 						}
+						
+						// Prepare request data
+						// @ts-ignore
+						if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
+							// @ts-ignore
+							const searchBuilder = self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions);
+							data.searchBuilder = searchBuilder;
+						}
+
+						// @ts-ignore
+						data.format_date_locale = self.formatDateLocal;
+						// @ts-ignore
+						if (self.criteriaLocal) {
+							// @ts-ignore
+							data.searchBuilder = self.criteriaLocal;
+						}
+						
+						data.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+						
+						// Make AJAX request
+						$.ajax({
+							// @ts-ignore
+							url: self.url,
+							data: data,
+							dataType: 'json',
+							success: function(json: any) {
+								// Cache the full response for future locale changes
+								// @ts-ignore
+								self.lastAjaxResponse = json;
+								callback(json);
+							},
+							error: function(xhr: any, error: any, thrown: any) {
+								console.error('DataTable AJAX error:', error, thrown);
+								callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+							}
+						});
 					},
 					suppressWarnings: true,
 					responsive: {
@@ -460,20 +498,32 @@ export default {
 				};
 				// @ts-ignore
 				if (self.options.dataSrc) {
-					options = {// @ts-ignore
-						...options, ajax: {
+					// If user provides custom dataSrc, wrap our ajax function with their dataSrc
+					const userDataSrc = self.options.dataSrc;
+					const originalAjax = options.ajax;
+					
+					options = {
+						...options,
+						// @ts-ignore
+						ajax: function(data: any, callback: any, settings: any) {
 							// @ts-ignore
-							url: self.url, // @ts-ignore
-							dataSrc: self.options.dataSrc,
-							"data": function (d: any) {// @ts-ignore
-								d.format_date_locale = self.formatDateLocal;
-								d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
-								// @ts-ignore
-								if (self.criteriaLocal) {
-									// @ts-ignore
-									d.searchBuilder 	= self.criteriaLocal;
+							originalAjax(data, function(json: any) {
+								// Apply user's custom dataSrc transformation
+								let transformedData;
+								if (typeof userDataSrc === 'function') {
+									transformedData = userDataSrc(json);
+								} else {
+									transformedData = json[userDataSrc];
 								}
-							}
+								
+								// Create a new response object with the transformed data
+								const newJson = {
+									...json,
+									data: transformedData
+								};
+								
+								callback(newJson);
+							}, settings);
 						}
 					};
 				}
@@ -1034,32 +1084,14 @@ export default {
 				// @ts-ignore
 				this.formatDateLocal = i18n.global.t("date.format");
 
-				// Update date language settings
-				this.setLanguageDate();
 				
 				// Update the DataTable language settings without reloading data
 				// @ts-ignore
 				if (this.$refs && this.$refs.jovencioDataTableRef && this.$refs.jovencioDataTableRef.dt) {
 					// @ts-ignore
-					const dt = this.$refs.jovencioDataTableRef.dt;
-					const newLanguage = this.setLanguageDataTable();
-					
-					try {
-						// Update language settings using DataTable internal settings
-						// Note: Direct property access is used as DataTable doesn't provide
-						// a public API for updating language after initialization
-						// This is the recommended approach per DataTable documentation
-						const settings = dt.settings();
-						if (settings && settings[0] && settings[0].oLanguage) {
-							settings[0].oLanguage = newLanguage;
-							
-							// Redraw the table to apply language changes without reloading data
-							dt.draw(false);
-						}
-					} catch (langError) {
-						// If direct property access fails, log error but don't break functionality
-						console.warn('Failed to update DataTable language settings:', langError);
-					}
+					const page = this.$refs.jovencioDataTableRef.dt.page();
+					this.setLanguageDate()
+					this.updateDataTable(page);
 				}
 			} catch (e) {
 				// continue
