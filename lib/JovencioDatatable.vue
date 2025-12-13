@@ -124,6 +124,16 @@ export default {
 		}
 	},
 	data() {
+		// Initialize locale before anything else
+		let initialLocale = this.locale || 'en';
+		if (['br', "pt-BR", "pt-br"].includes(initialLocale)) {
+			initialLocale = "pt-BR";
+		}
+		
+		// Set i18n locale immediately
+		// @ts-ignore
+		i18n.global.locale = initialLocale;
+		
 		return {
 			dataReady: false,
 			clousures: [] as JovencioActionClousure[],
@@ -132,10 +142,10 @@ export default {
 			url: '',
 			refreshKey: 1,
 			enableAfterInit: true,
-			localeLocal: 'en',
-			formatDateLocal: 'MM/DD/YYYY h:mm A',
-			oldFormatDateLocal: 'MM/DD/YYYY h:mm A',
-			oldLocaleLocal: 'en',
+			localeLocal: initialLocale,
+			formatDateLocal: i18n.global.t("date.format"),
+			oldFormatDateLocal: i18n.global.t("date.format"),
+			oldLocaleLocal: initialLocale,
 			updateLocal: null,
 			fullImport: loadingFinishImports,
 			datatableId: null as any,
@@ -234,26 +244,27 @@ export default {
 			}
 		},
 		locale(newVal: string, oldVal: string) {
+			// Only process if datatable is ready and locale actually changed
+			if (!this.dataReady || !newVal || !['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
+				return;
+			}
+			
+			// Normalize locale
+			let normalizedLocale = newVal;
+			if (['br', "pt-BR", "pt-br"].includes(newVal)) {
+				normalizedLocale = "pt-BR";
+			}
+			
+			// Only change if different from current locale
 			// @ts-ignore
-			const finishLoad = ref(false);
-			do {
+			if (normalizedLocale !== this.localeLocal) {
 				// @ts-ignore
-				if (this.dataReady && newVal && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
-					// @ts-ignore
-					this.oldLocaleLocal = this.localeLocal;
-					// @ts-ignore
-					if (['br', "pt-BR", "pt-br"].includes(newVal)) {
-						// @ts-ignore
-						newVal = "pt-BR";
-					}
-					// @ts-ignore
-					this.localeLocal = newVal;
-					// @ts-ignore
-					this.changeLocale(newVal);
-
-					finishLoad.value = true;
-				}
-			} while (!finishLoad.value && !loadingFinishImports.value);
+				this.oldLocaleLocal = this.localeLocal;
+				// @ts-ignore
+				this.localeLocal = normalizedLocale;
+				// @ts-ignore
+				this.changeLocale(normalizedLocale);
+			}
 		},
 		fullImport(newVal: any, oldVal: any) {
 			if (newVal) {
@@ -287,16 +298,8 @@ export default {
 		self.url = self.options.url;
 		// @ts-ignore
 		self.createOptions();
-		setTimeout(() => {
-			// @ts-ignore
-			if (self.dataReady && self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt &&
-				// @ts-ignore
-				self.locale !== self.localeLocal
-			) {
-				// @ts-ignore
-				self.changeLocale(self.locale)
-			}
-		}, 300);
+		// Remove the setTimeout that was causing double reload
+		// The locale is now set correctly in data() initialization
 
 	},
 	onUnmounted() {
@@ -1018,18 +1021,29 @@ export default {
 		changeLocale(locale: string) {
 			try {
 				// @ts-ignore
-				i18n.locale = locale;
-				// @ts-ignore
 				i18n.global.locale = locale
 				// @ts-ignore
 				this.oldFormatDateLocal = this.formatDateLocal;
 				// @ts-ignore
 				this.formatDateLocal = i18n.global.t("date.format")
 
-				// @ts-ignore
-				const page = this.$refs.jovencioDataTableRef.dt.page();
+				// Update date language settings
 				this.setLanguageDate()
-				this.updateDataTable(page);
+				
+				// Update the DataTable language settings without reloading data
+				// @ts-ignore
+				if (this.$refs && this.$refs.jovencioDataTableRef && this.$refs.jovencioDataTableRef.dt) {
+					// @ts-ignore
+					const dt = this.$refs.jovencioDataTableRef.dt;
+					const newLanguage = this.setLanguageDataTable();
+					
+					// Update language settings using DataTable API
+					// This updates the UI text without reloading the AJAX data
+					dt.settings()[0].oLanguage = newLanguage;
+					
+					// Redraw the table to apply language changes without reloading data
+					dt.draw(false);
+				}
 			} catch (e) {
 				// continue
 			}
