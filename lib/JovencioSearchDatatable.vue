@@ -80,6 +80,18 @@ const i18n = createI18n({
 	messages: { br: br, en: en, 'pt-BR': br, 'pt-br': br },
 });
 
+// Helper function to normalize locale strings
+function normalizeLocale(locale: string | null | undefined): string {
+	if (!locale) {
+		return 'en';
+	}
+	// Normalize Portuguese locale variants to pt-BR
+	if (['br', 'pt-BR', 'pt-br'].includes(locale)) {
+		return 'pt-BR';
+	}
+	return locale;
+}
+
 DataTable.use(DataTablesCore)
 export default {
 	name: 'JovencioSearchDatatable',
@@ -120,6 +132,9 @@ export default {
 		},
 	},
 	data() {
+		// Initialize locale before anything else
+		const initialLocale = normalizeLocale(this.locale);
+		
 		return {
 			dataReady: false,
 			clousures: [] as JovencioActionClousure[],
@@ -128,10 +143,10 @@ export default {
 			url: '',
 			refreshKey: 1,
 			enableAfterInit: true,
-			localeLocal: 'en',
+			localeLocal: initialLocale,
 			formatDateLocal: 'MM/DD/YYYY h:mm A',
 			oldFormatDateLocal: 'MM/DD/YYYY h:mm A',
-			oldLocaleLocal: 'en',
+			oldLocaleLocal: initialLocale,
 			updateLocal: null,
 			fullImport: loadingFinishImportsSearch,
 			SearchBuilderModuleNT: SearchBuilderModule,
@@ -176,33 +191,32 @@ export default {
 	},
 	watch: {
 		locale(newVal: string, oldVal: string) {
+			// Only process if datatable is ready and locale actually changed
+			if (!this.dataReady || !newVal || !['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
+				return;
+			}
+			
+			const normalizedNewLocale = normalizeLocale(newVal);
+			
+			// Only change if different from current locale
 			// @ts-ignore
-			const finishLoad = ref(false);
-			do {
-				if (this.dataReady && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
-					this.oldLocaleLocal = this.localeLocal;
-					// @ts-ignore
-					if (['br', "pt-BR", "pt-br"].includes(newVal)) {
-						// @ts-ignore
-						newVal = "pt-BR";
-					}
-					// @ts-ignore
-					this.localeLocal = newVal;
-					// @ts-ignore
-					this.changeLocale(newVal);
+			if (normalizedNewLocale !== this.localeLocal) {
+				// @ts-ignore
+				this.oldLocaleLocal = this.localeLocal;
+				// @ts-ignore
+				this.localeLocal = normalizedNewLocale;
+				// @ts-ignore
+				this.changeLocale(normalizedNewLocale);
 
+				// @ts-ignore
+				const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
+				// @ts-ignore
+				window.jvDT.searchbuilder = {
 					// @ts-ignore
-					const DateTime = SearchBuilderDateModule.value.DateTime || SearchBuilderDateModule.value.default || SearchBuilderDateModule.value;
-					// @ts-ignore
-					window.jvDT.searchbuilder = {
-						// @ts-ignore
-						...SearchBuilderModule.value,
-						DateTime
-					};
-
-					finishLoad.value = true;
-				}
-			} while (!finishLoad.value && !SearchBuilderDateModule.value);
+					...SearchBuilderModule.value,
+					DateTime
+				};
+			}
 		},
 		fullImport(newVal: any, oldVal: any) {
 			if (newVal) {
@@ -218,7 +232,13 @@ export default {
 		},
 	},
 	created() {
-
+		// Set i18n locale in created hook to avoid side effects in data()
+		// @ts-ignore
+		i18n.global.locale = this.localeLocal;
+		// @ts-ignore
+		this.formatDateLocal = i18n.global.t("date.format");
+		// @ts-ignore
+		this.oldFormatDateLocal = this.formatDateLocal;
 	},
 	mounted() {
 		if (loadingFinishImportsSearch.value) {
@@ -227,12 +247,8 @@ export default {
 
 		// @ts-ignore
 		this.createOptions();
-
-		setTimeout(() => {
-			if (this.locale !== this.localeLocal) {
-				this.changeLocale(this.locale)
-			}
-		}, 300)
+		// Remove the setTimeout that was causing issues
+		// The locale is now set correctly in data() initialization
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -273,6 +289,11 @@ export default {
 			this.dataReady = true;
 		},
 		injectOrigCond(details: any, conditionsMap: any): any {
+			// If no conditionsMap or no criteria, return details as-is
+			if (!conditionsMap || !details || !details.criteria || !Array.isArray(details.criteria)) {
+				return details;
+			}
+			
 			function recurse(crit: any): any {
 				// Se o critério tem um array de `criteria`, é um grupo lógico (ex: OR, AND)
 				if (crit.criteria && Array.isArray(crit.criteria)) {
@@ -280,6 +301,11 @@ export default {
 						...crit,
 						criteria: crit.criteria.map(recurse) // chamada recursiva para cada subcritério
 					};
+				}
+
+				// Check if the type exists in conditionsMap
+				if (!conditionsMap[crit.type] || !conditionsMap[crit.type][crit.condition]) {
+					return crit;
 				}
 
 				// Se for um critério simples, aplica o mapeamento
@@ -303,13 +329,21 @@ export default {
 					dom: 'Q',
 					// @ts-ignore
 					ajax: function (data, callback, settings) {
-						if (data.searchBuilder) {
+						// @ts-ignore
+						if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
 							// @ts-ignore
 							const searchBuilder = (Object.values(data.searchBuilder).length) ? self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions) : null;
 							
 							// @ts-ignore
 							self.$emit('search', {
 								searchBuilder: searchBuilder,
+								format_date_locale: self.formatDateLocal,
+								timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
+							});
+						} else if (data.searchBuilder) {
+							// @ts-ignore
+							self.$emit('search', {
+								searchBuilder: data.searchBuilder,
 								format_date_locale: self.formatDateLocal,
 								timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
 							});
