@@ -1083,7 +1083,8 @@ export default {
 				this.oldFormatDateLocal = this.formatDateLocal;
 				// @ts-ignore
 				this.formatDateLocal = i18n.global.t("date.format");
-
+				// @ts-ignore
+				this.isLocaleChangeRedraw = true;
 				
 				// Update the DataTable language settings without reloading data
 				// @ts-ignore

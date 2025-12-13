@@ -18,8 +18,9 @@
     "./dist/style.css": "./dist/style.css"
   },
   "scripts": {
-    "dev": "vite --mode=development",
+    "dev": "vite --mode=development --port=${PORT:-5179}",
     "build": "vite build && vue-tsc --emitDeclarationOnly",
+    "build:watch": "vite build --watch",
     "preview": "vite preview"
   },
   "devDependencies": {
