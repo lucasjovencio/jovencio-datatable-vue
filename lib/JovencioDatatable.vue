@@ -156,7 +156,9 @@ export default {
 			datatableId: null as any,
 			criteriaLocal: null as any,
 			lastAjaxResponse: null as any,
-			isLocaleChangeRedraw: false
+			isLocaleChangeRedraw: false,
+			pageLocaleChangeRedraw: null as any,
+			isLocaleChangeInitComplete: false
 		};
 	},
 	computed: {
@@ -374,6 +376,8 @@ export default {
 					// @ts-ignore
 					ajax: function(data: any, callback: any, settings: any) {
 						// If it's a locale change redraw, return cached data without making a request
+						console.log('Ajax called. isLocaleChangeRedraw:', self.isLocaleChangeRedraw);
+						console.log('Last Ajax Response:', self.lastAjaxResponse);
 						// @ts-ignore
 						if (self.isLocaleChangeRedraw && self.lastAjaxResponse) {
 							// @ts-ignore
@@ -905,7 +909,7 @@ export default {
 			}
 			return obj;
 		},
-		updateDataTable(page: any) {
+		updateDataTable(page: any, skipSearchBuilder: boolean = false) {
 			const self = this;
 			// @ts-ignore
 			if (self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt) {
@@ -914,8 +918,10 @@ export default {
 					// @ts-ignore
 					search: self.$refs.jovencioDataTableRef.dt.search()
 				}
+				
+				// Se não for mudança de locale, preserva o searchBuilder
 				// @ts-ignore
-				if (self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt && self.$refs.jovencioDataTableRef.dt.state() && self.$refs.jovencioDataTableRef.dt.state().searchBuilder) {
+				if (!skipSearchBuilder && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt && self.$refs.jovencioDataTableRef.dt.state() && self.$refs.jovencioDataTableRef.dt.state().searchBuilder) {
 					// @ts-ignore
 					this.adjustMomentValues(self.$refs.jovencioDataTableRef.dt.state().searchBuilder);
 					state = {
@@ -930,8 +936,9 @@ export default {
 				// @ts-ignore
 				let options = self.optionsDataTable;
 
+				// Só adiciona preDefined se não for mudança de locale
 				// @ts-ignore
-				if (state.searchBuilder && Object.keys(state.searchBuilder).length) {
+				if (!skipSearchBuilder && state.searchBuilder && Object.keys(state.searchBuilder).length) {
 					// @ts-ignore
 					options.searchBuilder = {
 						// @ts-ignore
@@ -954,6 +961,51 @@ export default {
 
 				// @ts-ignore
 				options.initComplete = function (settings, json) {
+					// @ts-ignore
+					if (self.isLocaleChangeInitComplete) {
+						// Se for mudança de locale, apenas restaurar a página atual sem fazer requisição
+						// @ts-ignore
+						self.isLocaleChangeInitComplete = false;
+						// @ts-ignore
+						if (self.pageLocaleChangeRedraw !== null && self.pageLocaleChangeRedraw > 0) {
+							// Restaura a página alterando o display start
+							// @ts-ignore
+							const displayStart = self.pageLocaleChangeRedraw * settings._iDisplayLength;
+							// @ts-ignore
+							settings._iDisplayStart = displayStart;
+							// @ts-ignore
+							
+							// Atualiza manualmente os controles de paginação
+							const api = settings.oInstance.api();
+							// @ts-ignore
+							const pageInfo = {
+								page: self.pageLocaleChangeRedraw,
+								pages: Math.ceil(settings._iRecordsDisplay / settings._iDisplayLength),
+								start: displayStart,
+								end: Math.min(displayStart + settings._iDisplayLength, settings._iRecordsDisplay),
+								length: settings._iDisplayLength,
+								recordsTotal: settings._iRecordsTotal,
+								recordsDisplay: settings._iRecordsDisplay
+							};
+							
+							// @ts-ignore
+							// Atualiza o cache de informações da página
+							settings.aanFeatures.i?.forEach(function(infoEl: any) {
+								// @ts-ignore
+								api.page.info = function() { return pageInfo; };
+							});
+							
+							// @ts-ignore
+							$(settings.nTableWrapper).find('.dt-paging-button').removeClass('current disabled');
+							// @ts-ignore
+							$(settings.nTableWrapper).find('.dt-paging-button[data-dt-idx="' + self.pageLocaleChangeRedraw + '"]').addClass('current');
+							
+							// @ts-ignore
+							self.pageLocaleChangeRedraw = null;
+						}
+						return;
+					}
+					
 					if (page) {
 						// @ts-ignore
 						self.enableAfterInit = false;
@@ -1085,14 +1137,18 @@ export default {
 				this.formatDateLocal = i18n.global.t("date.format");
 				// @ts-ignore
 				this.isLocaleChangeRedraw = true;
-				
+				// @ts-ignore
+				this.isLocaleChangeInitComplete = true;
+				console.log('Changing locale to:', this.isLocaleChangeRedraw);
 				// Update the DataTable language settings without reloading data
 				// @ts-ignore
 				if (this.$refs && this.$refs.jovencioDataTableRef && this.$refs.jovencioDataTableRef.dt) {
 					// @ts-ignore
 					const page = this.$refs.jovencioDataTableRef.dt.page();
+					this.pageLocaleChangeRedraw = page;
 					this.setLanguageDate()
-					this.updateDataTable(page);
+					// Passa true para skipSearchBuilder e null para page - não ir para página específica na inicialização
+					this.updateDataTable(null, true);
 				}
 			} catch (e) {
 				// continue
