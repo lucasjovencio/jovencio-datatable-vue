@@ -376,8 +376,6 @@ export default {
 					// @ts-ignore
 					ajax: function(data: any, callback: any, settings: any) {
 						// If it's a locale change redraw, return cached data without making a request
-						console.log('Ajax called. isLocaleChangeRedraw:', self.isLocaleChangeRedraw);
-						console.log('Last Ajax Response:', self.lastAjaxResponse);
 						// @ts-ignore
 						if (self.isLocaleChangeRedraw && self.lastAjaxResponse) {
 							// @ts-ignore
@@ -1139,7 +1137,6 @@ export default {
 				this.isLocaleChangeRedraw = true;
 				// @ts-ignore
 				this.isLocaleChangeInitComplete = true;
-				console.log('Changing locale to:', this.isLocaleChangeRedraw);
 				// Update the DataTable language settings without reloading data
 				// @ts-ignore
 				if (this.$refs && this.$refs.jovencioDataTableRef && this.$refs.jovencioDataTableRef.dt) {

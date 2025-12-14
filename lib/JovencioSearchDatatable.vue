@@ -152,6 +152,7 @@ export default {
 			SearchBuilderModuleNT: SearchBuilderModule,
 			datatableId: '1' as any,
 			dataSearch: [] as any,
+			isLocaleChangeRedraw:false as boolean
 		};
 	},
 	computed: {
@@ -330,28 +331,38 @@ export default {
 					// @ts-ignore
 					ajax: function (data, callback, settings) {
 						// @ts-ignore
-						if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
+						const isLocaleChange = self.isLocaleChangeRedraw;
+						// @ts-ignore
+						// Quando for mudança de locale, não emitir evento, apenas recriar com lang correto
+						if (!isLocaleChange) {
 							// @ts-ignore
-							const searchBuilder = (Object.values(data.searchBuilder).length) ? self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions) : null;
-							
-							// @ts-ignore
-							self.$emit('search', {
-								searchBuilder: searchBuilder,
-								format_date_locale: self.formatDateLocal,
-								timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
-							});
-						} else if (data.searchBuilder) {
-							// @ts-ignore
-							self.$emit('search', {
-								searchBuilder: data.searchBuilder,
-								format_date_locale: self.formatDateLocal,
-								timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
-							});
+							if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
+								// @ts-ignore
+								const searchBuilder = (Object.values(data.searchBuilder).length) ? self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions) : null;
+								
+								// @ts-ignore
+								self.$emit('search', {
+									searchBuilder: searchBuilder,
+									format_date_locale: self.formatDateLocal,
+									timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
+								});
+							} else if (data.searchBuilder) {
+								// @ts-ignore
+								self.$emit('search', {
+									searchBuilder: data.searchBuilder,
+									format_date_locale: self.formatDateLocal,
+									timezone_locale: Intl.DateTimeFormat().resolvedOptions().timeZone
+								});
+							}
 						}
+
 						const fakeResponse = {
 							data: self.dataSearch
 						};
 						callback(fakeResponse);
+						
+						// Reset flag APÓS callback para evitar que seja resetado antes da verificação
+						self.isLocaleChangeRedraw = false;
 					},
 					suppressWarnings: true,
 					serverSide: true,
@@ -803,7 +814,6 @@ export default {
 					};
 				}
 
-
 				// @ts-ignore
 				this.optionsDataTable = options;
 				// @ts-ignore
@@ -812,6 +822,9 @@ export default {
 		},
 		changeLocale(locale: string) {
 			try {
+				// @ts-ignore
+				// Definir flag ANTES de qualquer outra operação
+				this.isLocaleChangeRedraw = true;
 				// @ts-ignore
 				i18n.locale = locale;
 				// @ts-ignore
@@ -823,6 +836,7 @@ export default {
 
 				// @ts-ignore	
 				this.setLanguageDate()
+				// Não precisa mais passar parâmetro, sempre vai recriar
 				this.updateDataTable();
 			} catch (e) {
 				// continue
