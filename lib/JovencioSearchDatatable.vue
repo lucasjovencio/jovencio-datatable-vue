@@ -161,8 +161,8 @@ export default {
 		},
 		// @ts-ignore
 		columnsDataTable(): Array {
-			const self = this;
 			// @ts-ignore
+			const self = this;
 			// @ts-ignore
 			const body = {} as any;
 
@@ -248,8 +248,6 @@ export default {
 
 		// @ts-ignore
 		this.createOptions();
-		// Remove the setTimeout that was causing issues
-		// The locale is now set correctly in data() initialization
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -333,7 +331,6 @@ export default {
 						// @ts-ignore
 						const isLocaleChange = self.isLocaleChangeRedraw;
 						// @ts-ignore
-						// Quando for mudança de locale, não emitir evento, apenas recriar com lang correto
 						if (!isLocaleChange) {
 							// @ts-ignore
 							if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
@@ -361,7 +358,6 @@ export default {
 						};
 						callback(fakeResponse);
 						
-						// Reset flag APÓS callback para evitar que seja resetado antes da verificação
 						self.isLocaleChangeRedraw = false;
 					},
 					suppressWarnings: true,
@@ -823,7 +819,6 @@ export default {
 		changeLocale(locale: string) {
 			try {
 				// @ts-ignore
-				// Definir flag ANTES de qualquer outra operação
 				this.isLocaleChangeRedraw = true;
 				// @ts-ignore
 				i18n.locale = locale;
@@ -836,7 +831,6 @@ export default {
 
 				// @ts-ignore	
 				this.setLanguageDate()
-				// Não precisa mais passar parâmetro, sempre vai recriar
 				this.updateDataTable();
 			} catch (e) {
 				// continue

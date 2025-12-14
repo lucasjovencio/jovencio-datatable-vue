@@ -379,48 +379,46 @@ export default {
 						// @ts-ignore
 						if (self.isLocaleChangeRedraw && self.lastAjaxResponse) {
 							// @ts-ignore
-							self.isLocaleChangeRedraw = false;
-							// Return cached response directly
+							// Hide processing indicator immediately
+							$(settings.nTableWrapper).find('.dt-processing').hide();
 							// @ts-ignore
 							callback(self.lastAjaxResponse);
-							return;
-						}
-						
-						// Prepare request data
-						// @ts-ignore
-						if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
 							// @ts-ignore
-							const searchBuilder = self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions);
-							data.searchBuilder = searchBuilder;
-						}
-
-						// @ts-ignore
-						data.format_date_locale = self.formatDateLocal;
-						// @ts-ignore
-						if (self.criteriaLocal) {
+							self.isLocaleChangeRedraw = false;
+						} else {
 							// @ts-ignore
-							data.searchBuilder = self.criteriaLocal;
-						}
-						
-						data.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
-						
-						// Make AJAX request
-						$.ajax({
-							// @ts-ignore
-							url: self.url,
-							data: data,
-							dataType: 'json',
-							success: function(json: any) {
-								// Cache the full response for future locale changes
+							if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
 								// @ts-ignore
-								self.lastAjaxResponse = json;
-								callback(json);
-							},
-							error: function(xhr: any, error: any, thrown: any) {
-								console.error('DataTable AJAX error:', error, thrown);
-								callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+								const searchBuilder = self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions);
+								data.searchBuilder = searchBuilder;
 							}
-						});
+	
+							// @ts-ignore
+							data.format_date_locale = self.formatDateLocal;
+							// @ts-ignore
+							if (self.criteriaLocal) {
+								// @ts-ignore
+								data.searchBuilder = self.criteriaLocal;
+							}
+							
+							data.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+							
+							// Make AJAX request
+							$.ajax({
+								// @ts-ignore
+								url: self.url,
+								data: data,
+								dataType: 'json',
+								success: function(json: any) {
+									// @ts-ignore
+									self.lastAjaxResponse = json;
+									callback(json);
+								},
+								error: function(xhr: any, error: any, thrown: any) {
+									callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+								}
+							});
+						}
 					},
 					suppressWarnings: true,
 					responsive: {
@@ -919,7 +917,7 @@ export default {
 				
 				// Se não for mudança de locale, preserva o searchBuilder
 				// @ts-ignore
-				if (!skipSearchBuilder && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt && self.$refs.jovencioDataTableRef.dt.state() && self.$refs.jovencioDataTableRef.dt.state().searchBuilder) {
+				if (self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt && self.$refs.jovencioDataTableRef.dt.state() && self.$refs.jovencioDataTableRef.dt.state().searchBuilder) {
 					// @ts-ignore
 					this.adjustMomentValues(self.$refs.jovencioDataTableRef.dt.state().searchBuilder);
 					state = {
@@ -936,7 +934,7 @@ export default {
 
 				// Só adiciona preDefined se não for mudança de locale
 				// @ts-ignore
-				if (!skipSearchBuilder && state.searchBuilder && Object.keys(state.searchBuilder).length) {
+				if (state.searchBuilder && Object.keys(state.searchBuilder).length) {
 					// @ts-ignore
 					options.searchBuilder = {
 						// @ts-ignore
