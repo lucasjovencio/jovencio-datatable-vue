@@ -94,7 +94,7 @@ function normalizeLocale(locale: string | null | undefined): string {
 	if (!locale) {
 		return 'en';
 	}
-	// Normalize Portuguese locale variants to pt-BR
+
 	if (['br', 'pt-BR', 'pt-br'].includes(locale)) {
 		return 'pt-BR';
 	}
@@ -309,9 +309,6 @@ export default {
 		self.url = self.options.url;
 		// @ts-ignore
 		self.createOptions();
-		// Remove the setTimeout that was causing double reload
-		// The locale is now set correctly in data() initialization
-
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -378,8 +375,8 @@ export default {
 						// If it's a locale change redraw, return cached data without making a request
 						// @ts-ignore
 						if (self.isLocaleChangeRedraw && self.lastAjaxResponse) {
-							// @ts-ignore
 							// Hide processing indicator immediately
+							// @ts-ignore
 							$(settings.nTableWrapper).find('.dt-processing').hide();
 							// @ts-ignore
 							callback(self.lastAjaxResponse);
@@ -915,7 +912,6 @@ export default {
 					search: self.$refs.jovencioDataTableRef.dt.search()
 				}
 				
-				// Se não for mudança de locale, preserva o searchBuilder
 				// @ts-ignore
 				if (self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt && self.$refs.jovencioDataTableRef.dt.state() && self.$refs.jovencioDataTableRef.dt.state().searchBuilder) {
 					// @ts-ignore
@@ -932,7 +928,6 @@ export default {
 				// @ts-ignore
 				let options = self.optionsDataTable;
 
-				// Só adiciona preDefined se não for mudança de locale
 				// @ts-ignore
 				if (state.searchBuilder && Object.keys(state.searchBuilder).length) {
 					// @ts-ignore
@@ -959,19 +954,17 @@ export default {
 				options.initComplete = function (settings, json) {
 					// @ts-ignore
 					if (self.isLocaleChangeInitComplete) {
-						// Se for mudança de locale, apenas restaurar a página atual sem fazer requisição
 						// @ts-ignore
 						self.isLocaleChangeInitComplete = false;
 						// @ts-ignore
 						if (self.pageLocaleChangeRedraw !== null && self.pageLocaleChangeRedraw > 0) {
-							// Restaura a página alterando o display start
 							// @ts-ignore
 							const displayStart = self.pageLocaleChangeRedraw * settings._iDisplayLength;
 							// @ts-ignore
 							settings._iDisplayStart = displayStart;
 							// @ts-ignore
 							
-							// Atualiza manualmente os controles de paginação
+							// @ts-ignore
 							const api = settings.oInstance.api();
 							// @ts-ignore
 							const pageInfo = {
@@ -985,7 +978,6 @@ export default {
 							};
 							
 							// @ts-ignore
-							// Atualiza o cache de informações da página
 							settings.aanFeatures.i?.forEach(function(infoEl: any) {
 								// @ts-ignore
 								api.page.info = function() { return pageInfo; };

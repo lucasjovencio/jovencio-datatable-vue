@@ -85,7 +85,7 @@ function normalizeLocale(locale: string | null | undefined): string {
 	if (!locale) {
 		return 'en';
 	}
-	// Normalize Portuguese locale variants to pt-BR
+	
 	if (['br', 'pt-BR', 'pt-br'].includes(locale)) {
 		return 'pt-BR';
 	}
