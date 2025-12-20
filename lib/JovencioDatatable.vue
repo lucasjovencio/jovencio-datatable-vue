@@ -89,6 +89,18 @@ const i18n = createI18n({
 	messages: { br: br, en: en, 'pt-BR': br, 'pt-br': br },
 });
 
+// Helper function to normalize locale strings
+function normalizeLocale(locale: string | null | undefined): string {
+	if (!locale) {
+		return 'en';
+	}
+
+	if (['br', 'pt-BR', 'pt-br'].includes(locale)) {
+		return 'pt-BR';
+	}
+	return locale;
+}
+
 DataTable.use(DataTablesCore)
 export default {
 	name: 'JovencioDatatable',
@@ -124,6 +136,9 @@ export default {
 		}
 	},
 	data() {
+		// Initialize locale before anything else
+		const initialLocale = normalizeLocale(this.locale);
+		
 		return {
 			dataReady: false,
 			clousures: [] as JovencioActionClousure[],
@@ -132,14 +147,18 @@ export default {
 			url: '',
 			refreshKey: 1,
 			enableAfterInit: true,
-			localeLocal: 'en',
+			localeLocal: initialLocale,
 			formatDateLocal: 'MM/DD/YYYY h:mm A',
 			oldFormatDateLocal: 'MM/DD/YYYY h:mm A',
-			oldLocaleLocal: 'en',
+			oldLocaleLocal: initialLocale,
 			updateLocal: null,
 			fullImport: loadingFinishImports,
 			datatableId: null as any,
-			criteriaLocal: null as any
+			criteriaLocal: null as any,
+			lastAjaxResponse: null as any,
+			isLocaleChangeRedraw: false,
+			pageLocaleChangeRedraw: null as any,
+			isLocaleChangeInitComplete: false
 		};
 	},
 	computed: {
@@ -234,26 +253,23 @@ export default {
 			}
 		},
 		locale(newVal: string, oldVal: string) {
+			// Only process if datatable is ready and locale actually changed
+			if (!this.dataReady || !newVal || !['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
+				return;
+			}
+			
+			const normalizedNewLocale = normalizeLocale(newVal);
+			
+			// Only change if different from current locale
 			// @ts-ignore
-			const finishLoad = ref(false);
-			do {
+			if (normalizedNewLocale !== this.localeLocal) {
 				// @ts-ignore
-				if (this.dataReady && newVal && ['en', 'br', "pt-BR", "pt-br"].includes(newVal)) {
-					// @ts-ignore
-					this.oldLocaleLocal = this.localeLocal;
-					// @ts-ignore
-					if (['br', "pt-BR", "pt-br"].includes(newVal)) {
-						// @ts-ignore
-						newVal = "pt-BR";
-					}
-					// @ts-ignore
-					this.localeLocal = newVal;
-					// @ts-ignore
-					this.changeLocale(newVal);
-
-					finishLoad.value = true;
-				}
-			} while (!finishLoad.value && !loadingFinishImports.value);
+				this.oldLocaleLocal = this.localeLocal;
+				// @ts-ignore
+				this.localeLocal = normalizedNewLocale;
+				// @ts-ignore
+				this.changeLocale(normalizedNewLocale);
+			}
 		},
 		fullImport(newVal: any, oldVal: any) {
 			if (newVal) {
@@ -275,7 +291,13 @@ export default {
 		}
 	},
 	created() {
-
+		// Set i18n locale in created hook to avoid side effects in data()
+		// @ts-ignore
+		i18n.global.locale = this.localeLocal;
+		// @ts-ignore
+		this.formatDateLocal = i18n.global.t("date.format");
+		// @ts-ignore
+		this.oldFormatDateLocal = this.formatDateLocal;
 	},
 	mounted() {
 		const self = this;
@@ -287,17 +309,6 @@ export default {
 		self.url = self.options.url;
 		// @ts-ignore
 		self.createOptions();
-		setTimeout(() => {
-			// @ts-ignore
-			if (self.dataReady && self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt &&
-				// @ts-ignore
-				self.locale !== self.localeLocal
-			) {
-				// @ts-ignore
-				self.changeLocale(self.locale)
-			}
-		}, 300);
-
 	},
 	onUnmounted() {
 		// @ts-ignore
@@ -334,9 +345,18 @@ export default {
 			this.dataReady = true;
 		},
 		injectOrigCond(details:any, conditionsMap:any) {
+			// If no conditionsMap or no criteria, return details as-is
+			if (!conditionsMap || !details || !details.criteria || !Array.isArray(details.criteria)) {
+				return details;
+			}
 			return {
 				...details,
 				criteria: details.criteria.map((crit:any) => {
+					// Check if the type exists in conditionsMap
+					if (!conditionsMap[crit.type] || !conditionsMap[crit.type][crit.condition]) {
+						return crit;
+					}
+					
 					const condMeta = conditionsMap[crit.type][crit.condition];
 					return {
 						...crit,
@@ -351,25 +371,50 @@ export default {
 
 				let options = {
 					// @ts-ignore
-					ajax: {
+					ajax: function(data: any, callback: any, settings: any) {
+						// If it's a locale change redraw, return cached data without making a request
 						// @ts-ignore
-						url: self.url,
-						"data": function (d: any) {
-							if (d.searchBuilder) {
-								// @ts-ignore
-								const searchBuilder = self.injectOrigCond(d.searchBuilder, self.options.searchBuilder.conditions);
-								d.searchBuilder = searchBuilder;
-							}
-
+						if (self.isLocaleChangeRedraw && self.lastAjaxResponse) {
+							// Hide processing indicator immediately
 							// @ts-ignore
-							d.format_date_locale 	= self.formatDateLocal;
+							$(settings.nTableWrapper).find('.dt-processing').hide();
+							// @ts-ignore
+							callback(self.lastAjaxResponse);
+							// @ts-ignore
+							self.isLocaleChangeRedraw = false;
+						} else {
+							// @ts-ignore
+							if (data.searchBuilder && self.options.searchBuilder && self.options.searchBuilder.conditions) {
+								// @ts-ignore
+								const searchBuilder = self.injectOrigCond(data.searchBuilder, self.options.searchBuilder.conditions);
+								data.searchBuilder = searchBuilder;
+							}
+	
+							// @ts-ignore
+							data.format_date_locale = self.formatDateLocal;
 							// @ts-ignore
 							if (self.criteriaLocal) {
 								// @ts-ignore
-								d.searchBuilder 	= self.criteriaLocal;
+								data.searchBuilder = self.criteriaLocal;
 							}
 							
-							d.timezone_locale 		= Intl.DateTimeFormat().resolvedOptions().timeZone;
+							data.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
+							
+							// Make AJAX request
+							$.ajax({
+								// @ts-ignore
+								url: self.url,
+								data: data,
+								dataType: 'json',
+								success: function(json: any) {
+									// @ts-ignore
+									self.lastAjaxResponse = json;
+									callback(json);
+								},
+								error: function(xhr: any, error: any, thrown: any) {
+									callback({data: [], recordsTotal: 0, recordsFiltered: 0});
+								}
+							});
 						}
 					},
 					suppressWarnings: true,
@@ -450,20 +495,32 @@ export default {
 				};
 				// @ts-ignore
 				if (self.options.dataSrc) {
-					options = {// @ts-ignore
-						...options, ajax: {
+					// If user provides custom dataSrc, wrap our ajax function with their dataSrc
+					const userDataSrc = self.options.dataSrc;
+					const originalAjax = options.ajax;
+					
+					options = {
+						...options,
+						// @ts-ignore
+						ajax: function(data: any, callback: any, settings: any) {
 							// @ts-ignore
-							url: self.url, // @ts-ignore
-							dataSrc: self.options.dataSrc,
-							"data": function (d: any) {// @ts-ignore
-								d.format_date_locale = self.formatDateLocal;
-								d.timezone_locale = Intl.DateTimeFormat().resolvedOptions().timeZone;
-								// @ts-ignore
-								if (self.criteriaLocal) {
-									// @ts-ignore
-									d.searchBuilder 	= self.criteriaLocal;
+							originalAjax(data, function(json: any) {
+								// Apply user's custom dataSrc transformation
+								let transformedData;
+								if (typeof userDataSrc === 'function') {
+									transformedData = userDataSrc(json);
+								} else {
+									transformedData = json[userDataSrc];
 								}
-							}
+								
+								// Create a new response object with the transformed data
+								const newJson = {
+									...json,
+									data: transformedData
+								};
+								
+								callback(newJson);
+							}, settings);
 						}
 					};
 				}
@@ -845,7 +902,7 @@ export default {
 			}
 			return obj;
 		},
-		updateDataTable(page: any) {
+		updateDataTable(page: any, skipSearchBuilder: boolean = false) {
 			const self = this;
 			// @ts-ignore
 			if (self.$refs && self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt) {
@@ -854,6 +911,7 @@ export default {
 					// @ts-ignore
 					search: self.$refs.jovencioDataTableRef.dt.search()
 				}
+				
 				// @ts-ignore
 				if (self.$refs.jovencioDataTableRef && self.$refs.jovencioDataTableRef.dt && self.$refs.jovencioDataTableRef.dt.state() && self.$refs.jovencioDataTableRef.dt.state().searchBuilder) {
 					// @ts-ignore
@@ -894,6 +952,48 @@ export default {
 
 				// @ts-ignore
 				options.initComplete = function (settings, json) {
+					// @ts-ignore
+					if (self.isLocaleChangeInitComplete) {
+						// @ts-ignore
+						self.isLocaleChangeInitComplete = false;
+						// @ts-ignore
+						if (self.pageLocaleChangeRedraw !== null && self.pageLocaleChangeRedraw > 0) {
+							// @ts-ignore
+							const displayStart = self.pageLocaleChangeRedraw * settings._iDisplayLength;
+							// @ts-ignore
+							settings._iDisplayStart = displayStart;
+							// @ts-ignore
+							
+							// @ts-ignore
+							const api = settings.oInstance.api();
+							// @ts-ignore
+							const pageInfo = {
+								page: self.pageLocaleChangeRedraw,
+								pages: Math.ceil(settings._iRecordsDisplay / settings._iDisplayLength),
+								start: displayStart,
+								end: Math.min(displayStart + settings._iDisplayLength, settings._iRecordsDisplay),
+								length: settings._iDisplayLength,
+								recordsTotal: settings._iRecordsTotal,
+								recordsDisplay: settings._iRecordsDisplay
+							};
+							
+							// @ts-ignore
+							settings.aanFeatures.i?.forEach(function(infoEl: any) {
+								// @ts-ignore
+								api.page.info = function() { return pageInfo; };
+							});
+							
+							// @ts-ignore
+							$(settings.nTableWrapper).find('.dt-paging-button').removeClass('current disabled');
+							// @ts-ignore
+							$(settings.nTableWrapper).find('.dt-paging-button[data-dt-idx="' + self.pageLocaleChangeRedraw + '"]').addClass('current');
+							
+							// @ts-ignore
+							self.pageLocaleChangeRedraw = null;
+						}
+						return;
+					}
+					
 					if (page) {
 						// @ts-ignore
 						self.enableAfterInit = false;
@@ -1018,18 +1118,25 @@ export default {
 		changeLocale(locale: string) {
 			try {
 				// @ts-ignore
-				i18n.locale = locale;
-				// @ts-ignore
-				i18n.global.locale = locale
+				i18n.global.locale = locale;
 				// @ts-ignore
 				this.oldFormatDateLocal = this.formatDateLocal;
 				// @ts-ignore
-				this.formatDateLocal = i18n.global.t("date.format")
-
+				this.formatDateLocal = i18n.global.t("date.format");
 				// @ts-ignore
-				const page = this.$refs.jovencioDataTableRef.dt.page();
-				this.setLanguageDate()
-				this.updateDataTable(page);
+				this.isLocaleChangeRedraw = true;
+				// @ts-ignore
+				this.isLocaleChangeInitComplete = true;
+				// Update the DataTable language settings without reloading data
+				// @ts-ignore
+				if (this.$refs && this.$refs.jovencioDataTableRef && this.$refs.jovencioDataTableRef.dt) {
+					// @ts-ignore
+					const page = this.$refs.jovencioDataTableRef.dt.page();
+					this.pageLocaleChangeRedraw = page;
+					this.setLanguageDate()
+					// Passa true para skipSearchBuilder e null para page - não ir para página específica na inicialização
+					this.updateDataTable(null, true);
+				}
 			} catch (e) {
 				// continue
 			}

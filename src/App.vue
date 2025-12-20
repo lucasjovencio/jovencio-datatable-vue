@@ -34,9 +34,12 @@
                 class="button inline-flex items-center justify-center px-4 py-3 mb-1 whitespace-nowrap rounded text-base font-medium leading-none shadow-sm transition duration-150 ease-in-out text-white dark:text-white bg-green-600 hover:bg-green-900 dark:bg-green-600 dark:hover:bg-green-400 border-green-600 hover:border-green-900 dark:border-green-600 dark:hover:border-green-400 border-1 border mr-2 px-1 py-1 text-sm"
                 @click="addCriteria">Add criteria</button>
             <JovencioSearchDatatable :criteria="criteriaBuilder" :locale="locale" :columns="tableSearchColumns" :options="optionsDataTableSearch" @search="listenTrigger3" />
-
-            <JovencioDatatable  :locale="locale" :columns="tableColumns" :update="updateAjax" :options="optionsDataTable2" @trigger="listenTrigger" @listen="listenTrigger2" />
             
+            <div style="background-color: #f9fafb; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: #111827;">Search Builder JSON Preview</h3>
+                <pre v-show="criteriaBuilder2 && Object.keys(criteriaBuilder2).length > 0" style="background-color: #ffffff; padding: 1rem; border-radius: 0.25rem; border: 1px solid #e5e7eb; overflow: auto; max-height: 24rem; font-size: 0.875rem; color: #1f2937; font-family: monospace; white-space: pre; word-wrap: normal;text-align: left;">{{ JSON.stringify(criteriaBuilder2, null, 2) }}</pre>
+            </div>
+
         </div>
     </div>
 
@@ -273,6 +276,7 @@ export default {
             updateAjax: '',
             locale: "en",
             criteriaBuilder:null as any,
+            criteriaBuilder2:null as any,
         }
     },
     components: {
@@ -934,7 +938,7 @@ export default {
             this.locale = locale
         },
         listenTrigger3(search:any) {
-            this.criteria = search.searchBuilder;
+            this.criteriaBuilder2 = search.searchBuilder;
         },
         addCriteria() {
             

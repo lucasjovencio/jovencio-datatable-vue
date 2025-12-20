@@ -1,7 +1,7 @@
 {
   "name": "jovencio-datatable-vue",
   "private": false,
-  "version": "1.4.2",
+  "version": "1.4.4",
   "type": "module",
   "license": "MIT",
   "files": [
@@ -18,8 +18,9 @@
     "./dist/style.css": "./dist/style.css"
   },
   "scripts": {
-    "dev": "vite --mode=development",
+    "dev": "vite --mode=development --port=${PORT:-5179}",
     "build": "vite build && vue-tsc --emitDeclarationOnly",
+    "build:watch": "vite build --watch",
     "preview": "vite preview"
   },
   "devDependencies": {
