@@ -1,7 +1,7 @@
 {
   "name": "jovencio-datatable-vue",
   "private": false,
-  "version": "1.4.3-beta.3",
+  "version": "1.4.4",
   "type": "module",
   "license": "MIT",
   "files": [
